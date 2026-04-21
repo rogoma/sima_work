@@ -1,0 +1,37 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;0,9..40,900;1,9..40,400&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', system-ui, sans-serif; background: #F4F7FB; }
+input, select, textarea, button { font-family: inherit; }
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideIn { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+@keyframes barGrow { from { width: 0%; } }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.fade-in { animation: fadeIn 0.35s ease-out both; }
+.slide-in { animation: slideIn 0.3s ease-out both; }
+.bar-anim { animation: barGrow 0.8s ease-out both; }
+
+/* ───  ────────────────────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  /* Modal full-width on mobile */
+  .modal-inner {
+    border-radius: 12px 12px 0 0 !important;
+    max-height: 92vh !important;
+    margin-top: auto;
+  }
+
+  /* Toast full-width on mobile */
+  .toast-container {
+    left: 8px !important;
+    right: 8px !important;
+    max-width: none !important;
+  }
+}

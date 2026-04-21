@@ -1,0 +1,20 @@
+// Paleta SENASA
+export const C = {
+  azul: "#1255A1",
+  azulOscuro: "#0D3F7A",
+  azulMedio: "#1A6AC8",
+  azulClaro: "#E8F2FB",
+  azulSuave: "#F0F6FF",
+  rojo: "#C8242A",
+  rojoClaro: "#FDEAEA",
+  blanco: "#FFFFFF",
+  gris: "#F4F7FB",
+  grisMedio: "#E2EAF4",
+  grisBorde: "#CBD5E1",
+  grisTexto: "#64748B",
+  texto: "#1E293B",
+  verde: "#059669",
+  verdeC: "#ECFDF5",
+  amarillo: "#D97706",
+  amarilloC: "#FFFBEB",
+};

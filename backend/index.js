@@ -39,8 +39,7 @@ app.use("/api/roles",       rolesRoutes);
 app.get("/api/health", (_req, res) => res.json({ ok: true, timestamp: new Date().toISOString() }));
 
 // ─── SERVIR FRONTEND EN PRODUCCIÓN ─────────────────────────────────────────
-// const frontendPath = path.resolve(__dirname, "../sima/dist");
-const frontendPath = path.resolve("F:/Proyecto/sima/dist");
+const frontendPath = path.resolve(__dirname, "../dist");
 app.use(express.static(frontendPath));
 app.get("*", (_req, res) => {
   res.sendFile(path.join(frontendPath, "index.html"));

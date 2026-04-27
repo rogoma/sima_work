@@ -122,13 +122,13 @@ export default function App() {
       case "nuevo":
         return <FormNuevoRegistro usuario={usuario} registros={registros} onGuardar={handleGuardarRegistro} onCancel={() => { setRegEditar(null); setVista("registros"); }} registroEditar={regEditar} localidades={localidades} modalidades={modalidades} />;
       case "validacion":
-        return usuario.rol === "coordinador" ? <VistaValidacion registros={registros} onValidar={handleValidar} onRechazar={handleRechazar} localidades={localidades} modalidades={modalidades} /> : null;
+        return [1, 5].includes(usuario.rol_id) ? <VistaValidacion registros={registros} onValidar={handleValidar} onRechazar={handleRechazar} localidades={localidades} modalidades={modalidades} /> : null;
       case "reportes":
-        return usuario.rol === "coordinador" ? <VistaReportes registros={registros} localidades={localidades} modalidades={modalidades} /> : null;
+        return [1, 5].includes(usuario.rol_id) ? <VistaReportes registros={registros} localidades={localidades} modalidades={modalidades} /> : null;
       case "admin":
-        return usuario.rol === "coordinador" ? <VistaAdmin localidades={localidades} modalidades={modalidades} /> : null;
+        return [1, 5].includes(usuario.rol_id) ? <VistaAdmin localidades={localidades} modalidades={modalidades} /> : null;
       case "roles":
-        return usuario.rol === "coordinador" ? <VistaRoles /> : null;
+        return [1, 5].includes(usuario.rol_id) ? <VistaRoles /> : null;
       default:
         return <VistaDashboard usuario={usuario} localidades={localidades} registros={registros} setVista={handleSetVista} setLocalidadSeleccionada={setLocalidadSel} />;
     }
@@ -164,7 +164,7 @@ export default function App() {
             <img src="/Logo_Senasa_solo.jpg" alt="Logo Senasa" style={{ height: 60, objectFit: "contain" }} />
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 8 : 12 }}>
-            {pendientesCount > 0 && usuario.rol === "coordinador" && (
+            {pendientesCount > 0 && [1, 5].includes(usuario.rol_id) && (
               <button onClick={() => handleSetVista("validacion")} style={{ display: "flex", alignItems: "center", gap: 6, padding: isMobile ? "6px 10px" : "6px 14px", background: "linear-gradient(135deg,#FFFBEB,#FEF3C7)", border: "1px solid #FCD34D", borderRadius: 20, cursor: "pointer", fontSize: 12, fontWeight: 700, color: "#92400E", animation: "pulse 2s infinite" }}>
                 ⚠️ {pendientesCount}{!isMobile && ` pendiente${pendientesCount !== 1 ? "s" : ""}`}
               </button>

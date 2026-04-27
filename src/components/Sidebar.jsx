@@ -10,7 +10,7 @@ export default function Sidebar({ usuario, vista, setVista, pendientes, onLogout
   );
   const [confirmarSalida, setConfirmarSalida] = useState(false);
 
-  const esCoordinador = usuario.rol === "coordinador";
+  const esCoordinador = [1, 5].includes(usuario.rol_id);
 
   const items = [
     { id: "dashboard", icon: "📊", label: "Dashboard" },

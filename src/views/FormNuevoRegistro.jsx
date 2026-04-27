@@ -7,7 +7,9 @@ import { Campo, Input, Select, Textarea } from "../components/FormFields";
 
 export default function FormNuevoRegistro({ usuario, registros, onGuardar, onCancel, registroEditar = null, localidades, modalidades }) {
   const locales = usuario.localidades ? localidades.filter((l) => usuario.localidades.map(Number).includes(Number(l.id))) : localidades;
-  const misModalidades = modalidades.filter((m) => m.roles.includes(usuario.rol));
+  const misModalidades = usuario.rol === "Trabajadora Social"
+    ? modalidades.filter((m) => Number(m.id) === 13)
+    : modalidades.filter((m) => m.roles.includes(usuario.rol));
   const esEdicion = !!registroEditar;
 
   const [paso, setPaso] = useState(1);
@@ -16,7 +18,7 @@ export default function FormNuevoRegistro({ usuario, registros, onGuardar, onCan
     titular: registroEditar?.titular || "", ci: registroEditar?.ci || "",
     celular: registroEditar?.celular || "", manzana: registroEditar?.manzana || "",
     lote: registroEditar?.lote || "", tipo: registroEditar?.tipo || "conectado",
-    modalidad_id: registroEditar?.modalidad_id || "", fecha_ejec: registroEditar?.fecha_ejec?.split("T")[0] || "",
+    modalidad_id: registroEditar?.modalidad_id || (misModalidades.length === 1 ? String(misModalidades[0].id) : ""), fecha_ejec: registroEditar?.fecha_ejec?.split("T")[0] || "",
     observaciones: registroEditar?.observaciones || "", evidencia_url: registroEditar?.evidencia_url || "",
   });
   const [errores, setErrores] = useState({});
@@ -164,7 +166,9 @@ export default function FormNuevoRegistro({ usuario, registros, onGuardar, onCan
             <Campo label="Modalidad / Estrategia" required error={errores.modalidad_id}>
               <Select value={form.modalidad_id} onChange={(e) => setF("modalidad_id", e.target.value)}>
                 <option value="">Seleccionar...</option>
-                {["JUNTA", "CONTRATISTA", "ICARO"].map((cat) => { const mods = misModalidades.filter((m) => m.cat === cat); if (!mods.length) return null; return <optgroup key={cat} label={`── ${cat} ──`}>{mods.map((m) => <option key={m.id} value={m.id}>{m.nombre}</option>)}</optgroup>; })}
+                {usuario.rol === "Trabajadora Social"
+                  ? misModalidades.map((m) => <option key={m.id} value={m.id}>{m.nombre}</option>)
+                  : ["JUNTA", "CONTRATISTA", "ICARO"].map((cat) => { const mods = misModalidades.filter((m) => m.cat === cat); if (!mods.length) return null; return <optgroup key={cat} label={`── ${cat} ──`}>{mods.map((m) => <option key={m.id} value={m.id}>{m.nombre}</option>)}</optgroup>; })}
               </Select>
               {form.modalidad_id && <div style={{ marginTop: 8, display: "flex", gap: 8, alignItems: "center" }}><CatBadge cat={modCat(form.modalidad_id)} /><span style={{ fontSize: 12, color: C.grisTexto }}>{modNombre(form.modalidad_id)}</span></div>}
             </Campo>

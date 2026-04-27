@@ -11,7 +11,7 @@ const soloCoordinador = [auth, requireRol("coordinador")];
 // ─── GET /api/usuarios ─────────────────────────────────────────────────────────
 router.get("/", ...soloCoordinador, async (req, res) => {
   const { rows } = await pool.query(
-    `SELECT u.id, u."user", u.nombre, r.nombre AS rol, u.rol_id, u.activo, u.created_at,
+    `SELECT u.id, u."user", u.nombre, r.nombre AS rol, u.rol_id, (u.estado_id = 1) AS activo, u.created_at,
             array_agg(ul.localidad_id ORDER BY ul.localidad_id) FILTER (WHERE ul.localidad_id IS NOT NULL) AS localidades
      FROM usuarios u
      LEFT JOIN roles r ON r.id = u.rol_id
@@ -31,7 +31,7 @@ router.get("/roles", ...soloCoordinador, async (req, res) => {
 // ─── GET /api/usuarios/:id ─────────────────────────────────────────────────────
 router.get("/:id", ...soloCoordinador, async (req, res) => {
   const { rows } = await pool.query(
-    `SELECT u.id, u."user", u.nombre, r.nombre AS rol, u.rol_id, u.activo, u.created_at,
+    `SELECT u.id, u."user", u.nombre, r.nombre AS rol, u.rol_id, (u.estado_id = 1) AS activo, u.created_at,
             array_agg(ul.localidad_id ORDER BY ul.localidad_id) FILTER (WHERE ul.localidad_id IS NOT NULL) AS localidades
      FROM usuarios u
      LEFT JOIN roles r ON r.id = u.rol_id
@@ -86,7 +86,7 @@ router.post(
 
       await client.query("COMMIT");
       const { rows } = await client.query(
-        `SELECT u.id, u."user", u.nombre, r.nombre AS rol, u.rol_id, u.activo,
+        `SELECT u.id, u."user", u.nombre, r.nombre AS rol, u.rol_id, (u.estado_id = 1) AS activo,
                 array_agg(ul.localidad_id) FILTER (WHERE ul.localidad_id IS NOT NULL) AS localidades
          FROM usuarios u
          LEFT JOIN roles r ON r.id = u.rol_id
@@ -133,7 +133,7 @@ router.put(
 
       if (nombre !== undefined) { updates.push(`nombre=$${params.push(nombre.trim())}`); }
       if (rol_id !== undefined) { updates.push(`rol_id=$${params.push(Number(rol_id))}`); }
-      if (activo !== undefined) { updates.push(`activo=$${params.push(activo)}`); }
+      if (activo !== undefined) { updates.push(`estado_id=$${params.push(activo ? 1 : 2)}`); }
       if (password) { updates.push(`password_hash=$${params.push(await bcrypt.hash(password, 10))}`); }
 
       if (updates.length) {
@@ -150,7 +150,7 @@ router.put(
 
       await client.query("COMMIT");
       const { rows: updated } = await client.query(
-        `SELECT u.id, u."user", u.nombre, r.nombre AS rol, u.rol_id, u.activo,
+        `SELECT u.id, u."user", u.nombre, r.nombre AS rol, u.rol_id, (u.estado_id = 1) AS activo,
                 array_agg(ul.localidad_id) FILTER (WHERE ul.localidad_id IS NOT NULL) AS localidades
          FROM usuarios u
          LEFT JOIN roles r ON r.id = u.rol_id
@@ -176,7 +176,7 @@ router.delete("/:id/eliminar", ...soloCoordinador, async (req, res) => {
     return res.status(400).json({ error: "No puede eliminar su propio usuario." });
   }
   const { rows: regs } = await pool.query(
-    `SELECT COUNT(*) AS total FROM registros WHERE cargado_por = $1`,
+    `SELECT COUNT(*) AS total FROM registros WHERE usuario_id_carga = $1`,
     [userId]
   );
   if (Number(regs[0].total) > 0) {
@@ -197,7 +197,7 @@ router.delete("/:id", ...soloCoordinador, async (req, res) => {
     return res.status(400).json({ error: "No puede desactivar su propio usuario." });
   }
   const { rows } = await pool.query(
-    `UPDATE usuarios SET activo=false, updated_at=NOW() WHERE id=$1 RETURNING id`,
+    `UPDATE usuarios SET estado_id=2, updated_at=NOW() WHERE id=$1 RETURNING id`,
     [userId]
   );
   if (!rows.length) return res.status(404).json({ error: "Usuario no encontrado." });
@@ -207,14 +207,15 @@ router.delete("/:id", ...soloCoordinador, async (req, res) => {
 // ─── GET /api/usuarios/modalidades/lista ──────────────────────────────────────
 router.get("/modalidades/lista", auth, async (req, res) => {
   const { rows } = await pool.query(
-    `SELECT m.id, m.nombre, m.cat,
-            array_agg(r.nombre ORDER BY r.nombre) AS roles
+    `SELECT m.id, m.nombre, tm.nombre AS cat,
+            COALESCE(array_agg(r.nombre ORDER BY r.nombre) FILTER (WHERE r.nombre IS NOT NULL), '{}') AS roles
      FROM modalidades m
-     JOIN modalidad_roles mr ON mr.modalidad_id = m.id
-     JOIN roles r ON r.id = mr.rol_id
-     WHERE m.activo = TRUE
-     GROUP BY m.id
-     ORDER BY m.cat, m.nombre`
+     LEFT JOIN tipo_modalidad tm ON tm.id = m.id_tipo_modadlidad
+     LEFT JOIN modalidad_roles mr ON mr.modalidad_id = m.id
+     LEFT JOIN roles r ON r.id = mr.rol_id
+     WHERE m.estado_id = 1
+     GROUP BY m.id, tm.nombre
+     ORDER BY tm.nombre, m.nombre`
   );
   res.json(rows);
 });

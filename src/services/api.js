@@ -5,13 +5,14 @@
 const API = "/api";
 
 export async function apiFetch(path, options = {}) {
+  const { skipAuthRedirect = false, ...fetchOptions } = options;
   const token = localStorage.getItem("simsas_token");
-  const headers = { "Content-Type": "application/json", ...options.headers };
+  const headers = { "Content-Type": "application/json", ...fetchOptions.headers };
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
-  const res = await fetch(`${API}${path}`, { ...options, headers });
+  const res = await fetch(`${API}${path}`, { ...fetchOptions, headers });
 
-  if (res.status === 401) {
+  if (res.status === 401 && !skipAuthRedirect) {
     localStorage.removeItem("simsas_token");
     localStorage.removeItem("simsas_usuario");
     window.location.reload();
@@ -30,6 +31,7 @@ export async function login(user, password) {
   const data = await apiFetch("/auth/login", {
     method: "POST",
     body: JSON.stringify({ user, password }),
+    skipAuthRedirect: true,
   });
   localStorage.setItem("simsas_token", data.token);
   localStorage.setItem("simsas_usuario", JSON.stringify(data.usuario));

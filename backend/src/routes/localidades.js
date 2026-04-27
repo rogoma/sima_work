@@ -3,25 +3,50 @@ const pool = require("../db/pool");
 const auth = require("../middlewares/auth");
 const { puedeAccederLocalidad } = require("../middlewares/roles");
 
+// tipo_conexiones: 1=Previstas, 2=Conectados, 3=Adecuaciones
+// estados:        4=Validado,  5=Pendiente
+// tipo_registro:  1=Conectado, 2=Adecuación
+
+function mapearLocalidad(loc) {
+  const previstas       = Number(loc.previstas);
+  const conectados_base = Number(loc.conectados_base);
+  const adec_base       = Number(loc.adecuaciones_base);
+  const nuevos_con      = Number(loc.nuevos_conectados);
+  const nuevas_adec     = Number(loc.nuevas_adecuaciones);
+  return {
+    ...loc,
+    previstas,
+    conectados_total:    conectados_base + nuevos_con,
+    adecuaciones_total:  adec_base + nuevas_adec,
+    pendientes:          Number(loc.pendientes),
+    avance_pct: previstas
+      ? Math.min(100, Math.round(((conectados_base + nuevos_con) / previstas) * 100))
+      : 0,
+    brecha: previstas - (conectados_base + nuevos_con),
+  };
+}
+
 // ─── GET /api/localidades ──────────────────────────────────────────────────────
 router.get("/", auth, async (req, res) => {
   const usuario = req.usuario;
-
-  let where = "";
   const params = [];
+  let where = "";
 
   if (usuario.localidades?.length) {
-    where = `WHERE l.id = ANY($1)`;
-    params.push(usuario.localidades);
+    where = `WHERE l.id = ANY($${params.push(usuario.localidades)})`;
   }
 
   const { rows } = await pool.query(
     `SELECT
-       l.id, l.nombre, l.previstas, l.conectados AS conectados_base, l.adecuaciones AS adecuaciones_base, l.ci,
-       COUNT(r.id) FILTER (WHERE r.estado='validado' AND r.tipo='conectado')  AS nuevos_conectados,
-       COUNT(r.id) FILTER (WHERE r.estado='validado' AND r.tipo='adecuacion') AS nuevas_adecuaciones,
-       COUNT(r.id) FILTER (WHERE r.estado='pendiente')                        AS pendientes
+       l.id, l.nombre,
+       COALESCE(SUM(lt.cantidad) FILTER (WHERE lt.tipoconex_id = 1), 0) AS previstas,
+       COALESCE(SUM(lt.cantidad) FILTER (WHERE lt.tipoconex_id = 2), 0) AS conectados_base,
+       COALESCE(SUM(lt.cantidad) FILTER (WHERE lt.tipoconex_id = 3), 0) AS adecuaciones_base,
+       COUNT(r.id) FILTER (WHERE r.estado_id = 4 AND r.tipo_registro_id = 1) AS nuevos_conectados,
+       COUNT(r.id) FILTER (WHERE r.estado_id = 4 AND r.tipo_registro_id = 2) AS nuevas_adecuaciones,
+       COUNT(r.id) FILTER (WHERE r.estado_id = 5)                            AS pendientes
      FROM localidades l
+     LEFT JOIN localidad_tipoconex lt ON lt.localidad_id = l.id
      LEFT JOIN registros r ON r.localidad_id = l.id
      ${where}
      GROUP BY l.id
@@ -29,44 +54,34 @@ router.get("/", auth, async (req, res) => {
     params
   );
 
-  const result = rows.map((loc) => ({
-    ...loc,
-    conectados_total: Number(loc.conectados_base) + Number(loc.nuevos_conectados),
-    adecuaciones_total: Number(loc.adecuaciones_base) + Number(loc.nuevas_adecuaciones),
-    pendientes: Number(loc.pendientes),
-    avance_pct: loc.previstas
-      ? Math.min(100, Math.round(((Number(loc.conectados_base) + Number(loc.nuevos_conectados)) / loc.previstas) * 100))
-      : 0,
-    brecha: loc.previstas - (Number(loc.conectados_base) + Number(loc.nuevos_conectados)),
-  }));
-
-  res.json(result);
+  res.json(rows.map(mapearLocalidad));
 });
 
 // ─── GET /api/localidades/dashboard ───────────────────────────────────────────
 router.get("/dashboard", auth, async (req, res) => {
-  const { rows: totales } = await pool.query(
+  const { rows } = await pool.query(
     `SELECT
-       SUM(l.conectados) AS conectados_base,
-       SUM(l.adecuaciones) AS adecuaciones_base,
-       SUM(l.previstas) AS previstas_total,
-       COUNT(r.id) FILTER (WHERE r.estado='validado' AND r.tipo='conectado')  AS nuevos_conectados,
-       COUNT(r.id) FILTER (WHERE r.estado='validado' AND r.tipo='adecuacion') AS nuevas_adecuaciones,
-       COUNT(r.id) FILTER (WHERE r.estado='pendiente')                        AS pendientes
+       COALESCE(SUM(lt.cantidad) FILTER (WHERE lt.tipoconex_id = 2), 0) AS conectados_base,
+       COALESCE(SUM(lt.cantidad) FILTER (WHERE lt.tipoconex_id = 3), 0) AS adecuaciones_base,
+       COALESCE(SUM(lt.cantidad) FILTER (WHERE lt.tipoconex_id = 1), 0) AS previstas_total,
+       COUNT(r.id) FILTER (WHERE r.estado_id = 4 AND r.tipo_registro_id = 1) AS nuevos_conectados,
+       COUNT(r.id) FILTER (WHERE r.estado_id = 4 AND r.tipo_registro_id = 2) AS nuevas_adecuaciones,
+       COUNT(r.id) FILTER (WHERE r.estado_id = 5)                            AS pendientes
      FROM localidades l
+     LEFT JOIN localidad_tipoconex lt ON lt.localidad_id = l.id
      LEFT JOIN registros r ON r.localidad_id = l.id`
   );
 
-  const t = totales[0];
-  const conectados = Number(t.conectados_base) + Number(t.nuevos_conectados);
+  const t = rows[0];
+  const conectados  = Number(t.conectados_base) + Number(t.nuevos_conectados);
   const adecuaciones = Number(t.adecuaciones_base) + Number(t.nuevas_adecuaciones);
-  const previstas = Number(t.previstas_total);
+  const previstas   = Number(t.previstas_total);
 
   res.json({
-    conectados_total: conectados,
-    adecuaciones_total: adecuaciones,
-    previstas_total: previstas,
-    pendientes: Number(t.pendientes),
+    conectados_total:    conectados,
+    adecuaciones_total:  adecuaciones,
+    previstas_total:     previstas,
+    pendientes:          Number(t.pendientes),
     avance_pct: previstas ? Math.min(100, Math.round((conectados / previstas) * 100)) : 0,
     brecha: previstas - conectados,
   });
@@ -82,11 +97,15 @@ router.get("/:id", auth, async (req, res) => {
 
   const { rows } = await pool.query(
     `SELECT
-       l.id, l.nombre, l.previstas, l.conectados AS conectados_base, l.adecuaciones AS adecuaciones_base, l.ci,
-       COUNT(r.id) FILTER (WHERE r.estado='validado' AND r.tipo='conectado')  AS nuevos_conectados,
-       COUNT(r.id) FILTER (WHERE r.estado='validado' AND r.tipo='adecuacion') AS nuevas_adecuaciones,
-       COUNT(r.id) FILTER (WHERE r.estado='pendiente')                        AS pendientes
+       l.id, l.nombre,
+       COALESCE(SUM(lt.cantidad) FILTER (WHERE lt.tipoconex_id = 1), 0) AS previstas,
+       COALESCE(SUM(lt.cantidad) FILTER (WHERE lt.tipoconex_id = 2), 0) AS conectados_base,
+       COALESCE(SUM(lt.cantidad) FILTER (WHERE lt.tipoconex_id = 3), 0) AS adecuaciones_base,
+       COUNT(r.id) FILTER (WHERE r.estado_id = 4 AND r.tipo_registro_id = 1) AS nuevos_conectados,
+       COUNT(r.id) FILTER (WHERE r.estado_id = 4 AND r.tipo_registro_id = 2) AS nuevas_adecuaciones,
+       COUNT(r.id) FILTER (WHERE r.estado_id = 5)                            AS pendientes
      FROM localidades l
+     LEFT JOIN localidad_tipoconex lt ON lt.localidad_id = l.id
      LEFT JOIN registros r ON r.localidad_id = l.id
      WHERE l.id = $1
      GROUP BY l.id`,
@@ -95,9 +114,6 @@ router.get("/:id", auth, async (req, res) => {
 
   if (!rows.length) return res.status(404).json({ error: "Localidad no encontrada." });
 
-  const loc = rows[0];
-
-  // Proyecciones ICARO - ahora con JOIN a modalidades
   const { rows: proyecciones } = await pool.query(
     `SELECT ip.cantidad, m.nombre AS modalidad
      FROM icaro_proyecciones ip
@@ -107,17 +123,7 @@ router.get("/:id", auth, async (req, res) => {
     [locId]
   );
 
-  res.json({
-    ...loc,
-    conectados_total: Number(loc.conectados_base) + Number(loc.nuevos_conectados),
-    adecuaciones_total: Number(loc.adecuaciones_base) + Number(loc.nuevas_adecuaciones),
-    pendientes: Number(loc.pendientes),
-    avance_pct: loc.previstas
-      ? Math.min(100, Math.round(((Number(loc.conectados_base) + Number(loc.nuevos_conectados)) / loc.previstas) * 100))
-      : 0,
-    brecha: loc.previstas - (Number(loc.conectados_base) + Number(loc.nuevos_conectados)),
-    proyecciones_icaro: proyecciones,
-  });
+  res.json({ ...mapearLocalidad(rows[0]), proyecciones_icaro: proyecciones });
 });
 
 module.exports = router;

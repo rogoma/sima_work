@@ -21,7 +21,7 @@ router.post(
     const { user, password } = req.body;
 
     const { rows } = await pool.query(
-      `SELECT u.id, u."user", u.nombre, r.nombre AS rol, u.rol_id, u.password_hash, u.activo,
+      `SELECT u.id, u."user", u.nombre, r.nombre AS rol, u.rol_id, u.password_hash, u.estado_id,
               array_agg(ul.localidad_id) FILTER (WHERE ul.localidad_id IS NOT NULL) AS localidades
        FROM usuarios u
        LEFT JOIN roles r ON r.id = u.rol_id
@@ -37,7 +37,7 @@ router.post(
 
     const usuario = rows[0];
 
-    if (!usuario.activo) {
+    if (usuario.estado_id === 2 || usuario.estado_id === 6) {
       return res.status(401).json({ error: "Usuario inactivo. Contacte al administrador." });
     }
 

@@ -2,9 +2,9 @@ const router = require("express").Router();
 const { body, validationResult } = require("express-validator");
 const pool = require("../db/pool");
 const auth = require("../middlewares/auth");
-const { requireRol } = require("../middlewares/roles");
+const { requireRolId } = require("../middlewares/roles");
 
-const soloCoordinador = [auth, requireRol("coordinador")];
+const soloCoordinador = [auth, requireRolId(1, 5)];
 
 // ─── GET /api/roles ────────────────────────────────────────────────────────────
 router.get("/", ...soloCoordinador, async (_req, res) => {

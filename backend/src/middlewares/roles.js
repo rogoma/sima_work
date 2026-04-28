@@ -7,10 +7,18 @@ function requireRol(...roles) {
   };
 }
 
+function requireRolId(...rolIds) {
+  return (req, res, next) => {
+    if (!rolIds.includes(req.usuario.rol_id)) {
+      return res.status(403).json({ error: "Sin permisos para esta acción." });
+    }
+    next();
+  };
+}
+
 function puedeAccederLocalidad(usuario, localidadId) {
   if (!usuario.localidades || !usuario.localidades.length) return true;
-  // Comparar como números ya que ahora son integers
   return usuario.localidades.includes(Number(localidadId));
 }
 
-module.exports = { requireRol, puedeAccederLocalidad };
+module.exports = { requireRol, requireRolId, puedeAccederLocalidad };

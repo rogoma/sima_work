@@ -3,15 +3,15 @@ const bcrypt = require("bcryptjs");
 const { body, validationResult } = require("express-validator");
 const pool = require("../db/pool");
 const auth = require("../middlewares/auth");
-const { requireRol } = require("../middlewares/roles");
+const { requireRolId } = require("../middlewares/roles");
 
-// Solo el coordinador puede gestionar usuarios
-const soloCoordinador = [auth, requireRol("coordinador")];
+// Solo roles administradores (id 1 y 5) pueden gestionar usuarios
+const soloCoordinador = [auth, requireRolId(1, 5)];
 
 // ─── GET /api/usuarios ─────────────────────────────────────────────────────────
 router.get("/", ...soloCoordinador, async (req, res) => {
   const { rows } = await pool.query(
-    `SELECT u.id, u."user", u.nombre, r.nombre AS rol, u.rol_id, (u.estado_id = 1) AS activo, u.created_at,
+    `SELECT u.id, u."user", u.nombre, r.nombre AS rol, u.rol_id, u.estado_id, (u.estado_id = 1) AS activo, u.created_at,
             array_agg(ul.localidad_id ORDER BY ul.localidad_id) FILTER (WHERE ul.localidad_id IS NOT NULL) AS localidades
      FROM usuarios u
      LEFT JOIN roles r ON r.id = u.rol_id
@@ -86,7 +86,7 @@ router.post(
 
       await client.query("COMMIT");
       const { rows } = await client.query(
-        `SELECT u.id, u."user", u.nombre, r.nombre AS rol, u.rol_id, (u.estado_id = 1) AS activo,
+        `SELECT u.id, u."user", u.nombre, r.nombre AS rol, u.rol_id, u.estado_id, (u.estado_id = 1) AS activo,
                 array_agg(ul.localidad_id) FILTER (WHERE ul.localidad_id IS NOT NULL) AS localidades
          FROM usuarios u
          LEFT JOIN roles r ON r.id = u.rol_id
@@ -113,6 +113,7 @@ router.put(
     body("nombre").optional().notEmpty().trim(),
     body("rol_id").optional().isInt(),
     body("password").optional().isLength({ min: 6 }),
+    body("estado_id").optional().isInt(),
     body("localidades").optional().isArray(),
   ],
   async (req, res) => {
@@ -127,13 +128,15 @@ router.put(
       const { rows } = await client.query(`SELECT * FROM usuarios WHERE id=$1`, [userId]);
       if (!rows.length) return res.status(404).json({ error: "Usuario no encontrado." });
 
-      const { nombre, rol_id, password, activo, localidades } = req.body;
+      const { nombre, rol_id, password, estado_id, localidades } = req.body;
       const updates = [];
       const params = [];
 
       if (nombre !== undefined) { updates.push(`nombre=$${params.push(nombre.trim())}`); }
       if (rol_id !== undefined) { updates.push(`rol_id=$${params.push(Number(rol_id))}`); }
-      if (activo !== undefined) { updates.push(`estado_id=$${params.push(activo ? 1 : 2)}`); }
+      if (estado_id !== undefined && [1, 2, 6].includes(Number(estado_id))) {
+        updates.push(`estado_id=$${params.push(Number(estado_id))}`);
+      }
       if (password) { updates.push(`password_hash=$${params.push(await bcrypt.hash(password, 10))}`); }
 
       if (updates.length) {
@@ -150,7 +153,7 @@ router.put(
 
       await client.query("COMMIT");
       const { rows: updated } = await client.query(
-        `SELECT u.id, u."user", u.nombre, r.nombre AS rol, u.rol_id, (u.estado_id = 1) AS activo,
+        `SELECT u.id, u."user", u.nombre, r.nombre AS rol, u.rol_id, u.estado_id, (u.estado_id = 1) AS activo,
                 array_agg(ul.localidad_id) FILTER (WHERE ul.localidad_id IS NOT NULL) AS localidades
          FROM usuarios u
          LEFT JOIN roles r ON r.id = u.rol_id

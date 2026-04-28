@@ -94,7 +94,7 @@ export default function VistaDashboard({ usuario, localidades, registros, setVis
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
               <thead>
                 <tr style={{ backgroundColor: C.gris }}>
-                  {["Localidad", "Previstas", "Conectados", "CI Construidas", "Avance", "Brecha", ""].map((h) => (
+                  {["Localidad", "Previstas", "Conectados", "Avance", "Brecha", ""].map((h) => (
                     <th key={h} style={{ padding: "10px 14px", textAlign: "left", fontWeight: 700, color: C.grisTexto, fontSize: 12, borderBottom: `1px solid ${C.grisMedio}`, whiteSpace: "nowrap" }}>{h}</th>
                   ))}
                 </tr>
@@ -110,7 +110,7 @@ export default function VistaDashboard({ usuario, localidades, registros, setVis
                       <td style={{ padding: "12px 14px", fontWeight: 700, color: C.texto }}>{loc.nombre}</td>
                       <td style={{ padding: "12px 14px", color: C.grisTexto, fontWeight: 600 }}>{fmt(loc.previstas)}</td>
                       <td style={{ padding: "12px 14px", fontWeight: 700, color: C.azul }}>{fmt(conn)}</td>
-                      <td style={{ padding: "12px 14px", color: C.grisTexto }}>{fmt(loc.ci)}</td>
+                      {/* <td style={{ padding: "12px 14px", color: C.grisTexto }}>{fmt(loc.ci)}</td> */}
                       <td style={{ padding: "12px 14px", minWidth: 120 }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                           <div style={{ flex: 1, height: 6, backgroundColor: C.grisMedio, borderRadius: 3, overflow: "hidden" }}>

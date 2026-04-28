@@ -10,6 +10,12 @@ const fmt = n => String(Math.round(Number(n))).replace(/\B(?=(\d{3})+(?!\d))/g, 
 // Mapeo rol_id → nombre para el badge
 const ROL_MAP = { 1: "contratista", 2: "coordinador", 3: "equipo", 4: "junta" };
 
+const ESTADOS = [
+  { id: 1, nombre: "Activo",     bg: "#D1FAE5", color: "#065F46" },
+  { id: 2, nombre: "Inactivo",   bg: "#FEE2E2", color: "#DC2626" },
+  { id: 6, nombre: "Suspendido", bg: "#FEF3C7", color: "#92400E" },
+];
+
 export default function VistaAdmin({ localidades, modalidades }) {
   const [tab, setTab] = useState("usuarios");
   const [usuarios, setUsuarios] = useState([]);
@@ -109,12 +115,12 @@ export default function VistaAdmin({ localidades, modalidades }) {
 
   const abrirEdicion = (u) => {
     setShowNew(false);
-    setEditandoU({ id: u.id, user: u.user || "", nombre: u.nombre || "", rol_id: u.rol_id || roles[0]?.id, localidades: u.localidades || [], password: "", activo: u.activo ?? true });
+    setEditandoU({ id: u.id, user: u.user || "", nombre: u.nombre || "", rol_id: u.rol_id || roles[0]?.id, localidades: u.localidades || [], password: "", estado_id: u.estado_id ?? 1 });
   };
 
   const guardarEdicion = async () => {
     if (!editandoU.nombre) return;
-    const payload = { nombre: editandoU.nombre, rol_id: editandoU.rol_id, localidades: editandoU.localidades, activo: editandoU.activo };
+    const payload = { nombre: editandoU.nombre, rol_id: editandoU.rol_id, localidades: editandoU.localidades, estado_id: editandoU.estado_id };
     if (editandoU.password) payload.password = editandoU.password;
     try {
       const updated = await apiEditarUsuario(editandoU.id, payload);
@@ -126,7 +132,7 @@ export default function VistaAdmin({ localidades, modalidades }) {
   const tabs = [{ id: "usuarios", l: "👤 Usuarios" }, { id: "metas", l: "🎯 Metas" }, { id: "estrategias", l: "🔧 Estrategias" }];
 
   // Obtener el nombre de rol para un usuario
-  const getRolNombre = (u) => u.rol || ROL_MAP[u.rol_id] || "—";
+  const getRolNombre = (u) => u.rol || roles.find((r) => r.id === u.rol_id)?.nombre || ROL_MAP[u.rol_id] || "—";
   const getLocNombre = (locId) => localidades.find((l) => Number(l.id) === Number(locId))?.nombre || locId;
   const rolActual = roles.find((r) => r.id === nuevoU.rol_id)?.nombre?.toLowerCase() || "";
 
@@ -178,7 +184,7 @@ export default function VistaAdmin({ localidades, modalidades }) {
                     <Campo label="Nombre" required><Input value={editandoU.nombre} onChange={(e) => setE("nombre", e.target.value)} placeholder="Nombre" /></Campo>
                     <Campo label="Nueva contraseña"><Input type="password" value={editandoU.password} onChange={(e) => setE("password", e.target.value)} placeholder="Dejar en blanco para no cambiar" /></Campo>
                     <Campo label="Rol" required><Select value={editandoU.rol_id} onChange={(e) => setE("rol_id", Number(e.target.value))}>{roles.map((r) => <option key={r.id} value={r.id}>{r.nombre}</option>)}</Select></Campo>
-                    <Campo label="Estado" required><Select value={editandoU.activo ? "1" : "0"} onChange={(e) => setE("activo", e.target.value === "1")}><option value="1">Activo</option><option value="0">Inactivo</option></Select></Campo>
+                    <Campo label="Estado" required><Select value={editandoU.estado_id} onChange={(e) => setE("estado_id", Number(e.target.value))}>{ESTADOS.map((e) => <option key={e.id} value={e.id}>{e.nombre}</option>)}</Select></Campo>
                     {(rolEditNombre === "junta" || rolEditNombre === "contratista") && (
                       <Campo label="Localidades">
                         <div style={{ display: "flex", flexWrap: "wrap", gap: 6, padding: 8, border: `1px solid ${C.grisBorde}`, borderRadius: 10, background: C.blanco }}>
@@ -203,7 +209,7 @@ export default function VistaAdmin({ localidades, modalidades }) {
                     <td style={{ padding: "12px 14px", fontFamily: "monospace", fontSize: 12, color: C.grisTexto }}>{u.user || "—"}</td>
                     <td style={{ padding: "12px 14px" }}><RolBadge rol={getRolNombre(u)} /></td>
                     <td style={{ padding: "12px 14px", fontSize: 12, color: C.grisTexto }}>{u.localidades ? u.localidades.map((id) => getLocNombre(id)).join(", ") : "Todas"}</td>
-                    <td style={{ padding: "12px 14px" }}><span style={{ padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 700, background: u.activo ? C.verdeC : C.rojoClaro, color: u.activo ? "#065F46" : C.rojo }}>{u.activo ? "Activo" : "Inactivo"}</span></td>
+                    <td style={{ padding: "12px 14px" }}>{(() => { const est = ESTADOS.find((e) => e.id === u.estado_id) || ESTADOS[0]; return <span style={{ padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 700, background: est.bg, color: est.color }}>{est.nombre}</span>; })()}</td>
                     <td style={{ padding: "12px 14px" }}>
                       <div style={{ display: "flex", gap: 6 }}>
                         <button onClick={() => abrirEdicion(u)} style={{ padding: "5px 12px", background: "#FEF3C7", color: "#92400E", border: "none", borderRadius: 8, fontSize: 11, cursor: "pointer", fontWeight: 600 }}>Editar</button>

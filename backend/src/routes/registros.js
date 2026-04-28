@@ -2,7 +2,7 @@ const router = require("express").Router();
 const { body, validationResult } = require("express-validator");
 const pool = require("../db/pool");
 const auth = require("../middlewares/auth");
-const { requireRol, puedeAccederLocalidad } = require("../middlewares/roles");
+const { requireRolId, puedeAccederLocalidad } = require("../middlewares/roles");
 
 // estados: 3=Rechazado, 4=Validado, 5=Pendiente
 // tipo_registro: 1=Conectado, 2=Adecuación
@@ -249,7 +249,7 @@ router.put(
 );
 
 // ─── PATCH /api/registros/:id/validar ─────────────────────────────────────────
-router.patch("/:id/validar", auth, requireRol("coordinador"), async (req, res) => {
+router.patch("/:id/validar", auth, requireRolId(1, 5), async (req, res) => {
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
@@ -282,7 +282,7 @@ router.patch("/:id/validar", auth, requireRol("coordinador"), async (req, res) =
 router.patch(
   "/:id/rechazar",
   auth,
-  requireRol("coordinador"),
+  requireRolId(1, 5),
   [body("comentario").notEmpty().withMessage("El motivo de rechazo es obligatorio.")],
   async (req, res) => {
     const errors = validationResult(req);

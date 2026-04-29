@@ -20,11 +20,17 @@ import VistaRoles from "./views/VistaRoles";
 
 export default function App() {
   const [usuario, setUsuario] = useState(() => getUsuarioGuardado());
-  const [vista, setVista] = useState("dashboard");
+  const [vista, setVista] = useState(() => {
+    const u = getUsuarioGuardado();
+    return u && [4, 7].includes(u.rol_id) ? "localidad" : "dashboard";
+  });
   const [registros, setRegistros] = useState([]);
   const [localidades, setLocalidades] = useState([]);
   const [modalidades, setModalidades] = useState([]);
-  const [localidadSel, setLocalidadSel] = useState(null);
+  const [localidadSel, setLocalidadSel] = useState(() => {
+    const u = getUsuarioGuardado();
+    return u && [4, 7].includes(u.rol_id) ? (u.localidades?.[0] ?? null) : null;
+  });
   const [regEditar, setRegEditar] = useState(null);
   const [toasts, setToasts] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
@@ -99,7 +105,15 @@ export default function App() {
   };
 
   // ─── Login ─────────────────────────────────────────────────────────────────
-  if (!usuario) return <LoginScreen onLogin={(u) => { setUsuario(u); setVista("dashboard"); }} />;
+  if (!usuario) return <LoginScreen onLogin={(u) => {
+    setUsuario(u);
+    if ([4, 7].includes(u.rol_id)) {
+      setLocalidadSel(u.localidades?.[0] ?? null);
+      setVista("localidad");
+    } else {
+      setVista("dashboard");
+    }
+  }} />;
 
   // ─── Loading ───────────────────────────────────────────────────────────────
   if (loadingData) {

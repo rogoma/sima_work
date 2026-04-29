@@ -38,13 +38,13 @@ export default function VistaDashboard({ usuario, localidades, registros, setVis
         <h1 style={{ fontSize: 24, fontWeight: 800, color: C.texto, margin: 0, letterSpacing: "-0.03em" }}>
           {rolId === 4
             ? `📊 ${localidadAsignada?.nombre || "Mi Localidad"}`
-            : "📊 Dashboard General"}
+            : "📊 Tablero General"}
         </h1>
-        <p style={{ color: C.grisTexto, marginTop: 4, fontSize: 13 }}>
+        {/* <p style={{ color: C.grisTexto, marginTop: 4, fontSize: 13 }}>
           {rolId === 4
             ? "Dashboard de tu localidad asignada · Datos en tiempo real"
             : "Resumen del programa · Línea base: agosto 2025 · Datos en tiempo real"}
-        </p>
+        </p> */}
       </div>
 
       {d.pendientes > 0 && (
@@ -78,7 +78,7 @@ export default function VistaDashboard({ usuario, localidades, registros, setVis
         <div style={{ background: C.blanco, borderRadius: 14, padding: "20px 24px", border: `1px solid ${C.grisMedio}`, marginBottom: 24, boxShadow: "0 1px 6px rgba(18,85,161,0.04)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
             <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: C.texto }}>Avance Global del Programa</h3>
-            <span style={{ fontSize: 12, color: C.grisTexto }}>7 localidades · Plan ICARO 18 meses</span>
+            {/* <span style={{ fontSize: 12, color: C.grisTexto }}>7 localidades · Plan ICARO 18 meses</span> */}
           </div>
           <ProgressBar value={d.conectados_total} total={d.meta} color={C.azul} />
         </div>

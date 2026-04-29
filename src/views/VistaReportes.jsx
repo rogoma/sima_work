@@ -43,7 +43,7 @@ export default function VistaReportes({ registros, localidades, modalidades }) {
         </div>
         <div style={{ background: C.blanco, borderRadius: 14, border: `1px solid ${C.grisMedio}`, overflow: "hidden" }}>
           <div style={{ padding: "16px 20px", borderBottom: `1px solid ${C.grisMedio}`, background: `linear-gradient(135deg,${C.azulSuave},${C.blanco})` }}>
-            <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700 }}>Registros por modalidad (validados)</h3>
+            <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700 }}>Registros por estrategias (validados)</h3>
           </div>
           <div style={{ padding: 20 }}>
             {porMod.length === 0 && <div style={{ textAlign: "center", color: C.grisTexto, padding: 20 }}>Sin datos aún.</div>}

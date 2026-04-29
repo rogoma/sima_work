@@ -124,7 +124,6 @@ export default function VistaAdmin({ localidades, modalidades }) {
   // Obtener el nombre de rol para un usuario
   const getRolNombre = (u) => u.rol || roles.find((r) => r.id === u.rol_id)?.nombre || ROL_MAP[u.rol_id] || "—";
   const getLocNombre = (locId) => localidades.find((l) => Number(l.id) === Number(locId))?.nombre || locId;
-  const rolActual = roles.find((r) => r.id === nuevoU.rol_id)?.nombre?.toLowerCase() || "";
 
   return (
     <div>
@@ -150,11 +149,24 @@ export default function VistaAdmin({ localidades, modalidades }) {
                   <Campo label="Usuario (letras, números, _)" required><Input value={nuevoU.user} onChange={(e) => setN("user", e.target.value)} placeholder="ej: j_caacupe" /></Campo>
                   <Campo label="Nombre" required><Input value={nuevoU.nombre} onChange={(e) => setN("nombre", e.target.value)} placeholder="Nombre" /></Campo>
                   <Campo label="Contraseña" required><Input type="password" value={nuevoU.password} onChange={(e) => setN("password", e.target.value)} placeholder="Mín. 6 caracteres" /></Campo>
-                  <Campo label="Rol" required><Select value={nuevoU.rol_id} onChange={(e) => setN("rol_id", Number(e.target.value))}>{roles.map((r) => <option key={r.id} value={r.id}>{r.nombre}</option>)}</Select></Campo>
-                  {(rolActual === "junta" || rolActual === "contratista") && (
-                    <Campo label="Localidades">
+                  <Campo label="Rol" required><Select value={nuevoU.rol_id} onChange={(e) => { const rid = Number(e.target.value); setN("rol_id", rid); if (![1, 2, 3, 4, 5, 7].includes(rid)) setN("localidades", []); else if ([3, 7].includes(rid)) setN("localidades", nuevoU.localidades.slice(0, 1)); }}>{roles.map((r) => <option key={r.id} value={r.id}>{r.nombre}</option>)}</Select></Campo>
+                  {[1, 2, 3, 4, 5, 7].includes(nuevoU.rol_id) && (
+                    <Campo label={[4, 7].includes(nuevoU.rol_id) ? "Localidad" : "Localidades"}>
                       <div style={{ display: "flex", flexWrap: "wrap", gap: 6, padding: 8, border: `1px solid ${C.grisBorde}`, borderRadius: 10, background: C.blanco }}>
-                        {localidades.map((l) => (<label key={l.id} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 13, cursor: "pointer" }}><input type="checkbox" checked={nuevoU.localidades.includes(l.id)} onChange={(e) => { const c = nuevoU.localidades; setN("localidades", e.target.checked ? [...c, l.id] : c.filter((x) => x !== l.id)); }} />{l.nombre}</label>))}
+                        {localidades.map((l) => (
+                          <label key={l.id} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 13, cursor: "pointer" }}>
+                            <input
+                              type={[4, 7].includes(nuevoU.rol_id) ? "radio" : "checkbox"}
+                              name="nueva_localidad"
+                              checked={nuevoU.localidades.includes(l.id)}
+                              onChange={() => {
+                                if ([4, 7].includes(nuevoU.rol_id)) { setN("localidades", [l.id]); }
+                                else { const c = nuevoU.localidades; setN("localidades", c.includes(l.id) ? c.filter((x) => x !== l.id) : [...c, l.id]); }
+                              }}
+                            />
+                            {l.nombre}
+                          </label>
+                        ))}
                       </div>
                     </Campo>
                   )}
@@ -166,19 +178,31 @@ export default function VistaAdmin({ localidades, modalidades }) {
               </div>
             )}
             {editandoU && (() => {
-              const rolEditNombre = roles.find((r) => r.id === editandoU.rol_id)?.nombre?.toLowerCase() || "";
               return (
                 <div className="fade-in" style={{ background: "#FFF9E6", borderRadius: 14, padding: 20, marginBottom: 20, border: `1px solid #F0D070` }}>
                   <h4 style={{ margin: "0 0 14px" }}>Editar usuario: <span style={{ color: C.azul }}>{editandoU.user}</span></h4>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                     <Campo label="Nombre" required><Input value={editandoU.nombre} onChange={(e) => setE("nombre", e.target.value)} placeholder="Nombre" /></Campo>
                     <Campo label="Nueva contraseña"><Input type="password" value={editandoU.password} onChange={(e) => setE("password", e.target.value)} placeholder="Dejar en blanco para no cambiar" /></Campo>
-                    <Campo label="Rol" required><Select value={editandoU.rol_id} onChange={(e) => setE("rol_id", Number(e.target.value))}>{roles.map((r) => <option key={r.id} value={r.id}>{r.nombre}</option>)}</Select></Campo>
+                    <Campo label="Rol" required><Select value={editandoU.rol_id} onChange={(e) => { const rid = Number(e.target.value); setE("rol_id", rid); if (![1, 2, 3, 4, 5, 7].includes(rid)) setE("localidades", []); else if ([3, 7].includes(rid)) setE("localidades", editandoU.localidades.slice(0, 1)); }}>{roles.map((r) => <option key={r.id} value={r.id}>{r.nombre}</option>)}</Select></Campo>
                     <Campo label="Estado" required><Select value={editandoU.estado_id} onChange={(e) => setE("estado_id", Number(e.target.value))}>{ESTADOS.map((e) => <option key={e.id} value={e.id}>{e.nombre}</option>)}</Select></Campo>
-                    {(rolEditNombre === "junta" || rolEditNombre === "contratista") && (
-                      <Campo label="Localidades">
+                    {[1, 2, 3, 4, 5, 7].includes(editandoU.rol_id) && (
+                      <Campo label={[4, 7].includes(editandoU.rol_id) ? "Localidad" : "Localidades"}>
                         <div style={{ display: "flex", flexWrap: "wrap", gap: 6, padding: 8, border: `1px solid ${C.grisBorde}`, borderRadius: 10, background: C.blanco }}>
-                          {localidades.map((l) => (<label key={l.id} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 13, cursor: "pointer" }}><input type="checkbox" checked={editandoU.localidades.includes(l.id)} onChange={(e) => { const c = editandoU.localidades; setE("localidades", e.target.checked ? [...c, l.id] : c.filter((x) => x !== l.id)); }} />{l.nombre}</label>))}
+                          {localidades.map((l) => (
+                            <label key={l.id} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 13, cursor: "pointer" }}>
+                              <input
+                                type={[4, 7].includes(editandoU.rol_id) ? "radio" : "checkbox"}
+                                name="edit_localidad"
+                                checked={editandoU.localidades.includes(l.id)}
+                                onChange={() => {
+                                  if ([4, 7].includes(editandoU.rol_id)) { setE("localidades", [l.id]); }
+                                  else { const c = editandoU.localidades; setE("localidades", c.includes(l.id) ? c.filter((x) => x !== l.id) : [...c, l.id]); }
+                                }}
+                              />
+                              {l.nombre}
+                            </label>
+                          ))}
                         </div>
                       </Campo>
                     )}
@@ -281,7 +305,7 @@ export default function VistaAdmin({ localidades, modalidades }) {
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
                 <thead>
                   <tr style={{ background: C.gris }}>
-                    {["Categoría", "Modalidad", "Estado", ""].map((h) => (
+                    {["Categoría", "Estrategia", "Estado", ""].map((h) => (
                       <th key={h} style={{ padding: "10px 14px", textAlign: "left", fontWeight: 700, color: C.grisTexto, fontSize: 12, borderBottom: `1px solid ${C.grisMedio}` }}>{h}</th>
                     ))}
                   </tr>

@@ -13,7 +13,7 @@ export default function Sidebar({ usuario, vista, setVista, pendientes, onLogout
   const esCoordinador = [1, 5].includes(usuario.rol_id);
 
   const items = [
-    { id: "dashboard", icon: "📊", label: "Dashboard" },
+    { id: "dashboard", icon: "📊", label: "Tablero" },
     { id: "registros", icon: "📋", label: "Registros" },
     { id: "nuevo", icon: "➕", label: "Nuevo Registro" },
     ...(esCoordinador ? [{ id: "validacion", icon: "✅", label: "Validación", badge: pendientes }] : []),

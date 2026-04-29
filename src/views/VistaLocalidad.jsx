@@ -48,7 +48,7 @@ export default function VistaLocalidad({ localidadId, registros, usuario, setVis
         <ProgressBar value={conn} total={Number(locData.previstas)} color={pct(conn, locData.previstas) >= 50 ? C.verde : pct(conn, locData.previstas) >= 25 ? C.amarillo : C.rojo} />
       </div>
 
-      {proyecciones.length > 0 && (
+      {/* {proyecciones.length > 0 && (
         <div style={{ background: C.blanco, borderRadius: 14, border: `1px solid ${C.grisMedio}`, overflow: "hidden", marginBottom: 24 }}>
           <div style={{ padding: "16px 20px", borderBottom: `1px solid ${C.grisMedio}`, background: "linear-gradient(135deg,#ECFDF5,#D1FAE5)" }}>
             <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "#065F46" }}>🚀 Proyecciones Plan ICARO (18 meses)</h3>
@@ -66,7 +66,7 @@ export default function VistaLocalidad({ localidadId, registros, usuario, setVis
             </div>
           </div>
         </div>
-      )}
+      )} */}
 
       <div style={{ background: C.blanco, borderRadius: 14, border: `1px solid ${C.grisMedio}`, overflow: "hidden" }}>
         <div style={{ padding: "16px 20px", borderBottom: `1px solid ${C.grisMedio}` }}>

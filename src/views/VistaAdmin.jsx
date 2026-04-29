@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { C } from "../styles/colors";
-import { fetchUsuarios, fetchRoles, crearUsuario as apiCrearUsuario, editarUsuario as apiEditarUsuario, eliminarUsuarioDefinitivo, fetchTodasModalidades, crearModalidad as apiCrearModalidad, editarModalidad as apiEditarModalidad, eliminarModalidad as apiEliminarModalidad } from "../services/api";
+import { fetchUsuarios, fetchRoles, crearUsuario as apiCrearUsuario, editarUsuario as apiEditarUsuario, eliminarUsuarioDefinitivo, fetchTodasModalidades, fetchTiposModalidad, fetchEstadosModalidad, crearModalidad as apiCrearModalidad, editarModalidad as apiEditarModalidad } from "../services/api";
 import { RolBadge, CatBadge } from "../components/Badges";
 import { Loading } from "../components/DataDisplay";
 import { Campo, Input, Select } from "../components/FormFields";
@@ -28,14 +28,14 @@ export default function VistaAdmin({ localidades, modalidades }) {
   const setE = (k, v) => setEditandoU((n) => ({ ...n, [k]: v }));
 
   // ── Modalidades ABM ──────────────────────────────────────────────────────────
-  const CATS = ["JUNTA", "CONTRATISTA", "ICARO"];
-  const TODOS_ROLES = [{ id: 1, nombre: "contratista" }, { id: 2, nombre: "coordinador" }, { id: 3, nombre: "equipo" }, { id: 4, nombre: "junta" }];
   const [modalidadesAdmin, setModalidadesAdmin] = useState(
     () => (modalidades || []).map((m) => ({ ...m, activo: true }))
   );
+  const [tiposMod, setTiposMod] = useState([]);
+  const [estadosMod, setEstadosMod] = useState([]);
   const [loadingMod, setLoadingMod] = useState(false);
   const [showNewMod, setShowNewMod] = useState(false);
-  const [nuevaMod, setNuevaMod] = useState({ nombre: "", cat: "ICARO", roles: [] });
+  const [nuevaMod, setNuevaMod] = useState({ nombre: "", cat: "" });
   const setNM = (k, v) => setNuevaMod((n) => ({ ...n, [k]: v }));
   const [editandoMod, setEditandoMod] = useState(null);
   const setEM = (k, v) => setEditandoMod((n) => ({ ...n, [k]: v }));
@@ -50,49 +50,39 @@ export default function VistaAdmin({ localidades, modalidades }) {
   useEffect(() => {
     if (tab !== "estrategias") return;
     setLoadingMod(true);
-    fetchTodasModalidades()
-      .then((data) => { if (data?.length) setModalidadesAdmin(data); })
+    Promise.all([fetchTodasModalidades(), fetchTiposModalidad(), fetchEstadosModalidad()])
+      .then(([data, tipos, estados]) => {
+        if (data?.length) setModalidadesAdmin(data);
+        const t = tipos || [];
+        setTiposMod(t);
+        setEstadosMod(estados || []);
+        setNuevaMod(n => ({ ...n, cat: n.cat || t[0]?.nombre || "" }));
+      })
       .catch(() => {})
       .finally(() => setLoadingMod(false));
   }, [tab]);
 
   const crearMod = async () => {
-    if (!nuevaMod.nombre || !nuevaMod.roles.length) return;
+    if (!nuevaMod.nombre || !nuevaMod.cat) return;
     try {
-      const created = await apiCrearModalidad(nuevaMod);
-      setModalidadesAdmin((m) => [...m, created].sort((a, b) => a.cat.localeCompare(b.cat) || a.nombre.localeCompare(b.nombre)));
-      setShowNewMod(false); setNuevaMod({ nombre: "", cat: "ICARO", roles: [] });
+      const created = await apiCrearModalidad({ nombre: nuevaMod.nombre, cat: nuevaMod.cat, roles: [] });
+      setModalidadesAdmin((m) => [...m, created].sort((a, b) => (a.cat || "").localeCompare(b.cat || "") || a.nombre.localeCompare(b.nombre)));
+      setShowNewMod(false); setNuevaMod({ nombre: "", cat: tiposMod[0]?.nombre || "" });
     } catch (e) { alert(e.error || "Error al crear modalidad"); }
   };
 
   const abrirEdicionMod = (m) => {
     setShowNewMod(false);
-    setEditandoMod({ id: m.id, nombre: m.nombre, cat: m.cat, roles: m.roles || [] });
+    setEditandoMod({ id: m.id, nombre: m.nombre, cat: m.cat, estado_id: m.estado_id ?? 1 });
   };
 
   const guardarMod = async () => {
-    if (!editandoMod.nombre || !editandoMod.roles.length) return;
+    if (!editandoMod.nombre) return;
     try {
-      const updated = await apiEditarModalidad(editandoMod.id, { nombre: editandoMod.nombre, cat: editandoMod.cat, roles: editandoMod.roles });
+      const updated = await apiEditarModalidad(editandoMod.id, { nombre: editandoMod.nombre, cat: editandoMod.cat, estado_id: editandoMod.estado_id });
       setModalidadesAdmin((m) => m.map((x) => x.id === editandoMod.id ? updated : x));
       setEditandoMod(null);
     } catch (e) { alert(e.error || "Error al editar modalidad"); }
-  };
-
-  const desactivarMod = async (id) => {
-    if (!window.confirm("¿Desactivar esta modalidad?")) return;
-    try {
-      await apiEliminarModalidad(id);
-      setModalidadesAdmin((m) => m.map((x) => x.id === id ? { ...x, activo: false } : x));
-    } catch (e) { alert(e.error || "Error al desactivar modalidad"); }
-  };
-
-  const eliminarMod = async (id) => {
-    if (!window.confirm("¿Eliminar esta modalidad definitivamente?")) return;
-    try {
-      await apiEliminarModalidad(id);
-      setModalidadesAdmin((m) => m.filter((x) => x.id !== id));
-    } catch (e) { alert(e.error || "Error al eliminar modalidad"); }
   };
 
   const crearUsuario = async () => {
@@ -213,7 +203,6 @@ export default function VistaAdmin({ localidades, modalidades }) {
                     <td style={{ padding: "12px 14px" }}>
                       <div style={{ display: "flex", gap: 6 }}>
                         <button onClick={() => abrirEdicion(u)} style={{ padding: "5px 12px", background: "#FEF3C7", color: "#92400E", border: "none", borderRadius: 8, fontSize: 11, cursor: "pointer", fontWeight: 600 }}>Editar</button>
-                        <button onClick={() => eliminarU(u.id)} style={{ padding: "5px 12px", background: C.rojoClaro, color: C.rojo, border: "none", borderRadius: 8, fontSize: 11, cursor: "pointer", fontWeight: 600 }}>Eliminar</button>
                       </div>
                     </td>
                   </tr>
@@ -254,18 +243,8 @@ export default function VistaAdmin({ localidades, modalidades }) {
                   <Campo label="Nombre" required><Input value={nuevaMod.nombre} onChange={(e) => setNM("nombre", e.target.value)} placeholder="Ej: Llave en Mano" /></Campo>
                   <Campo label="Categoría" required>
                     <Select value={nuevaMod.cat} onChange={(e) => setNM("cat", e.target.value)}>
-                      {CATS.map((c) => <option key={c} value={c}>{c}</option>)}
+                      {tiposMod.map((t) => <option key={t.id} value={t.nombre}>{t.nombre}</option>)}
                     </Select>
-                  </Campo>
-                  <Campo label="Roles habilitados" required>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8, padding: 8, border: `1px solid ${C.grisBorde}`, borderRadius: 10, background: C.blanco }}>
-                      {TODOS_ROLES.map((r) => (
-                        <label key={r.id} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 13, cursor: "pointer" }}>
-                          <input type="checkbox" checked={nuevaMod.roles.includes(r.id)} onChange={(e) => { const c = nuevaMod.roles; setNM("roles", e.target.checked ? [...c, r.id] : c.filter((x) => x !== r.id)); }} />
-                          {r.nombre}
-                        </label>
-                      ))}
-                    </div>
                   </Campo>
                 </div>
                 <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 12 }}>
@@ -282,19 +261,14 @@ export default function VistaAdmin({ localidades, modalidades }) {
                   <Campo label="Nombre" required><Input value={editandoMod.nombre} onChange={(e) => setEM("nombre", e.target.value)} placeholder="Nombre" /></Campo>
                   <Campo label="Categoría" required>
                     <Select value={editandoMod.cat} onChange={(e) => setEM("cat", e.target.value)}>
-                      {CATS.map((c) => <option key={c} value={c}>{c}</option>)}
+                      {tiposMod.map((t) => <option key={t.id} value={t.nombre}>{t.nombre}</option>)}
                     </Select>
                   </Campo>
-                  {/* <Campo label="Roles habilitados" required>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8, padding: 8, border: `1px solid ${C.grisBorde}`, borderRadius: 10, background: C.blanco }}>
-                      {TODOS_ROLES.map((r) => (
-                        <label key={r.id} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 13, cursor: "pointer" }}>
-                          <input type="checkbox" checked={editandoMod.roles.includes(r.id)} onChange={(e) => { const c = editandoMod.roles; setEM("roles", e.target.checked ? [...c, r.id] : c.filter((x) => x !== r.id)); }} />
-                          {r.nombre}
-                        </label>
-                      ))}
-                    </div>
-                  </Campo> */}
+                  <Campo label="Estado" required>
+                    <Select value={editandoMod.estado_id} onChange={(e) => setEM("estado_id", Number(e.target.value))}>
+                      {estadosMod.filter(e => e.id === 1 || e.id === 2).map((e) => <option key={e.id} value={e.id}>{e.nombre}</option>)}
+                    </Select>
+                  </Campo>
                 </div>
                 <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 12 }}>
                   <button onClick={() => setEditandoMod(null)} style={{ padding: "8px 18px", background: C.gris, border: `1px solid ${C.grisMedio}`, borderRadius: 10, cursor: "pointer", fontSize: 13, fontWeight: 600, color: C.grisTexto }}>Cancelar</button>
@@ -312,24 +286,23 @@ export default function VistaAdmin({ localidades, modalidades }) {
                     ))}
                   </tr>
                 </thead>
-                <tbody>{modalidadesAdmin.map((m, i) => (
+                <tbody>{modalidadesAdmin.map((m, i) => {
+                  const est = estadosMod.find(e => e.id === m.estado_id);
+                  return (
                   <tr key={m.id} style={{ backgroundColor: i % 2 === 0 ? C.blanco : C.gris, borderBottom: `1px solid ${C.grisMedio}`, opacity: m.activo ? 1 : 0.5 }}>
                     <td style={{ padding: "12px 14px" }}><CatBadge cat={m.cat} /></td>
                     <td style={{ padding: "12px 14px", fontWeight: 600 }}>{m.nombre}</td>
                     <td style={{ padding: "12px 14px" }}>
-                      <span style={{ padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 700, background: m.activo ? C.verdeC : C.rojoClaro, color: m.activo ? "#065F46" : C.rojo }}>
-                        {m.activo ? "Activa" : "Inactiva"}
+                      <span style={{ padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 700, background: m.activo ? C.verdeC : C.rojo, color: m.activo ? "#065F46" : C.blanco }}>
+                        {est?.nombre || (m.activo ? "Activa" : "Inactiva")}
                       </span>
                     </td>
                     <td style={{ padding: "12px 14px" }}>
-                      <div style={{ display: "flex", gap: 6 }}>
-                        <button onClick={() => abrirEdicionMod(m)} style={{ padding: "5px 12px", background: "#FEF3C7", color: "#92400E", border: "none", borderRadius: 8, fontSize: 11, cursor: "pointer", fontWeight: 600 }}>Editar</button>
-                        <button onClick={() => desactivarMod(m.id)} style={{ padding: "5px 12px", background: C.amarilloC, color: C.amarillo, border: "none", borderRadius: 8, fontSize: 11, cursor: "pointer", fontWeight: 600 }}>Desactivar</button>
-                        <button onClick={() => eliminarMod(m.id)} style={{ padding: "5px 12px", background: C.rojoClaro, color: C.rojo, border: "none", borderRadius: 8, fontSize: 11, cursor: "pointer", fontWeight: 600 }}>Eliminar</button>
-                      </div>
+                      <button onClick={() => abrirEdicionMod(m)} style={{ padding: "5px 12px", background: "#FEF3C7", color: "#92400E", border: "none", borderRadius: 8, fontSize: 11, cursor: "pointer", fontWeight: 600, opacity: 1 }}>Editar</button>
                     </td>
                   </tr>
-                ))}</tbody>
+                  );
+                })}</tbody>
               </table>
             </div>
           </>}

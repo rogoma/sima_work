@@ -177,6 +177,14 @@ export function fetchTodasModalidades() {
   return apiFetch("/modalidades");
 }
 
+export function fetchTiposModalidad() {
+  return apiFetch("/modalidades/tipos");
+}
+
+export function fetchEstadosModalidad() {
+  return apiFetch("/modalidades/estados");
+}
+
 export function crearModalidad(data) {
   return apiFetch("/modalidades", { method: "POST", body: JSON.stringify(data) });
 }

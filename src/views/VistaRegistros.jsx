@@ -13,7 +13,10 @@ export default function VistaRegistros({ registros, usuario, onReabrir, localida
     if (filtros.estado && r.estado !== filtros.estado) return false;
     if (filtros.busqueda) {
       const b = filtros.busqueda.toLowerCase();
-      if (!r.titular.toLowerCase().includes(b) && !r.ci.includes(b) && !r.id.toLowerCase().includes(b)) return false;
+      const titular = String(r.titular ?? "").toLowerCase();
+      const ci      = String(r.ci ?? "");
+      const id      = String(r.id ?? "").toLowerCase();
+      if (!titular.includes(b) && !ci.includes(b) && !id.includes(b)) return false;
     }
     return true;
   });

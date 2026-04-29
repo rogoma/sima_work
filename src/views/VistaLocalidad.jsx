@@ -38,7 +38,7 @@ export default function VistaLocalidad({ localidadId, registros, usuario, setVis
         <StatCard icon="🎯" label="Meta" value={fmt(locData.previstas)} color={C.texto} />
         <StatCard icon="🔗" label="Conectados" value={fmt(conn)} sub="Solo validados" color={C.azul} />
         {/* <StatCard icon="🏠" label="Adecuaciones" value={fmt(adeq)} color="#B45309" /> */}
-        <StatCard icon="🏗️" label="CI Construidas" value={fmt(locData.ci)} color={C.grisTexto} />
+        {/* <StatCard icon="🏗️" label="CI Construidas" value={fmt(locData.ci)} color={C.grisTexto} /> */}
         <StatCard icon="⏳" label="Pendientes" value={locData.pendientes || 0} color={C.amarillo} />
         <StatCard icon="📉" label="Brecha" value={fmt(locData.brecha || 0)} color={C.rojo} />
       </div>

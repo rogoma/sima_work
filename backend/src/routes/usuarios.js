@@ -70,7 +70,7 @@ router.post(
       await client.query("BEGIN");
 
       const { rows: inserted } = await client.query(
-        `INSERT INTO usuarios ("user", nombre, rol_id, password_hash) VALUES ($1,$2,$3,$4) RETURNING id`,
+        `INSERT INTO usuarios ("user", nombre, rol_id, password_hash, estado_id) VALUES ($1,$2,$3,$4,1) RETURNING id`,
         [user, nombre.trim(), Number(rol_id), hash]
       );
       const newId = inserted[0].id;
@@ -183,7 +183,7 @@ router.delete("/:id/eliminar", ...soloCoordinador, async (req, res) => {
     [userId]
   );
   if (Number(regs[0].total) > 0) {
-    return res.status(409).json({ error: "No se puede eliminar usuario, posee movimientos" });
+    return res.status(409).json({ error: "No se puede eliminar usuario por tener registros asociados" });
   }
   const { rows } = await pool.query(
     `DELETE FROM usuarios WHERE id=$1 RETURNING id`,

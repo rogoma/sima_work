@@ -11,7 +11,7 @@ export default function VistaDashboard({ usuario, localidades, registros, setVis
     fetchDashboard().then(setDashboard).catch(() => {});
   }, [registros]);
 
-  const d = dashboard || { conectados_total: 0, adecuaciones_total: 0, previstas_total: 0, pendientes: 0, avance_pct: 0, brecha: 0 };
+  const d = dashboard || { meta: 0, conectados_total: 0, pendientes: 0, avance_pct: 0, brecha: 0 };
   const fmt = n => String(Math.round(Number(n))).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 
   const rolId = usuario.rol_id;
@@ -66,9 +66,11 @@ export default function VistaDashboard({ usuario, localidades, registros, setVis
 
       {mostrarDashboardGeneral && (
         <div style={{ display: "flex", gap: 16, marginBottom: 24, flexWrap: "wrap" }}>
-          <StatCard icon="🔗" label="Conectados a la Red" value={fmt(d.conectados_total)} sub={`Meta: ${fmt(d.previstas_total)}`} color={C.azul} />
+          <StatCard icon="🎯" label="Meta" value={fmt(d.meta)} color={C.texto} />
+          <StatCard icon="🔗" label="Conectados a la Red" value={fmt(d.conectados_total)} color={C.azul} />
           <StatCard icon="⏳" label="Pendientes Validación" value={fmt(d.pendientes)} color={C.amarillo} />
-          <StatCard icon="📈" label="Avance del Programa" value={`${d.avance_pct}%`} sub={`${fmt(d.brecha)} en brecha`} color={C.verde} />
+          <StatCard icon="📈" label="Avance del Programa" value={`${d.avance_pct}%`} color={C.verde} />
+          <StatCard icon="↔️" label="Brecha" value={fmt(d.brecha)} color={C.rojo} />
         </div>
       )}
 
@@ -78,7 +80,7 @@ export default function VistaDashboard({ usuario, localidades, registros, setVis
             <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: C.texto }}>Avance Global del Programa</h3>
             <span style={{ fontSize: 12, color: C.grisTexto }}>7 localidades · Plan ICARO 18 meses</span>
           </div>
-          <ProgressBar value={d.conectados_total} total={d.previstas_total} color={C.azul} />
+          <ProgressBar value={d.conectados_total} total={d.meta} color={C.azul} />
         </div>
       )}
 

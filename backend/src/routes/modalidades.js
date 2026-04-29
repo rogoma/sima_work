@@ -8,7 +8,8 @@ const soloCoordinador = [auth, requireRolId(1, 5)];
 
 async function queryOne(id) {
   const { rows } = await pool.query(
-    `SELECT m.id, m.nombre, tm.nombre AS cat, (m.estado_id = 1) AS activo,
+    `SELECT m.id, m.nombre, tm.nombre AS cat, m.estado_id,
+            (m.estado_id = 1) AS activo,
             array_agg(mr.rol_id ORDER BY mr.rol_id) FILTER (WHERE mr.rol_id IS NOT NULL) AS roles
      FROM modalidades m
      LEFT JOIN tipo_modalidad tm ON tm.id = m.id_tipo_modadlidad
@@ -23,7 +24,8 @@ async function queryOne(id) {
 // ─── GET /api/modalidades ─────────────────────────────────────────────────────
 router.get("/", ...soloCoordinador, async (req, res) => {
   const { rows } = await pool.query(
-    `SELECT m.id, m.nombre, tm.nombre AS cat, (m.estado_id = 1) AS activo,
+    `SELECT m.id, m.nombre, tm.nombre AS cat, m.estado_id,
+            (m.estado_id = 1) AS activo,
             array_agg(mr.rol_id ORDER BY mr.rol_id) FILTER (WHERE mr.rol_id IS NOT NULL) AS roles
      FROM modalidades m
      LEFT JOIN tipo_modalidad tm ON tm.id = m.id_tipo_modadlidad
@@ -34,20 +36,35 @@ router.get("/", ...soloCoordinador, async (req, res) => {
   res.json(rows);
 });
 
+// ─── GET /api/modalidades/tipos ───────────────────────────────────────────────
+router.get("/tipos", ...soloCoordinador, async (req, res) => {
+  const { rows } = await pool.query(
+    `SELECT id, nombre FROM tipo_modalidad ORDER BY nombre`
+  );
+  res.json(rows);
+});
+
+// ─── GET /api/modalidades/estados ─────────────────────────────────────────────
+router.get("/estados", ...soloCoordinador, async (req, res) => {
+  const { rows } = await pool.query(
+    `SELECT id, nombre FROM estados ORDER BY id`
+  );
+  res.json(rows);
+});
+
 // ─── POST /api/modalidades ────────────────────────────────────────────────────
 router.post(
   "/",
   ...soloCoordinador,
   [
     body("nombre").notEmpty().trim().withMessage("El nombre es requerido."),
-    body("cat").isIn(["JUNTA", "CONTRATISTA", "ICARO"]).withMessage("Categoría inválida."),
-    body("roles").isArray({ min: 1 }).withMessage("Seleccione al menos un rol."),
+    body("cat").notEmpty().withMessage("La categoría es requerida."),
   ],
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
-    const { nombre, cat, roles } = req.body;
+    const { nombre, cat, roles = [] } = req.body;
     const client = await pool.connect();
     try {
       await client.query("BEGIN");
@@ -93,15 +110,16 @@ router.put(
   ...soloCoordinador,
   [
     body("nombre").optional().notEmpty().trim(),
-    body("cat").optional().isIn(["JUNTA", "CONTRATISTA", "ICARO"]),
-    body("roles").optional().isArray({ min: 1 }),
+    body("cat").optional().notEmpty(),
+    body("roles").optional().isArray(),
+    body("estado_id").optional().isInt(),
   ],
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
     const id = Number(req.params.id);
-    const { nombre, cat, roles } = req.body;
+    const { nombre, cat, roles, estado_id } = req.body;
     const client = await pool.connect();
     try {
       await client.query("BEGIN");
@@ -119,6 +137,8 @@ router.put(
         }
         updates.push(`id_tipo_modadlidad=$${params.push(tipoRows[0].id)}`);
       }
+      if (estado_id !== undefined) updates.push(`estado_id=$${params.push(Number(estado_id))}`);
+
       if (updates.length) {
         await client.query(
           `UPDATE modalidades SET ${updates.join(",")} WHERE id=$${params.push(id)}`,

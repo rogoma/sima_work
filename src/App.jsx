@@ -99,7 +99,12 @@ export default function App() {
   };
 
   const handleSetVista = (v) => {
-    setVista(v);
+    if (v === "dashboard" && [4, 7].includes(usuario?.rol_id)) {
+      setLocalidadSel(usuario.localidades?.[0] ?? null);
+      setVista("localidad");
+    } else {
+      setVista(v);
+    }
     setRegEditar(null);
     if (isMobile) setSidebarOpen(false);
   };

@@ -6,10 +6,16 @@ import { CatBadge } from "../components/Badges";
 import { Campo, Input, Select, Textarea } from "../components/FormFields";
 
 export default function FormNuevoRegistro({ usuario, registros, onGuardar, onCancel, registroEditar = null, localidades, modalidades }) {
-  const locales = usuario.localidades ? localidades.filter((l) => usuario.localidades.map(Number).includes(Number(l.id))) : localidades;
-  const misModalidades = usuario.rol === "Trabajadora Social"
-    ? modalidades.filter((m) => Number(m.id) === 13)
-    : modalidades.filter((m) => m.roles.includes(usuario.rol));
+  const locales = usuario.localidades?.length ? localidades.filter((l) => usuario.localidades.map(Number).includes(Number(l.id))) : localidades;
+  const misModalidades = (() => {
+    const rid = usuario.rol_id;
+    if (rid === 1) return modalidades.filter((m) => Number(m.id) >= 1 && Number(m.id) <= 13);
+    if (rid === 2) return modalidades.filter((m) => Number(m.id) === 2);
+    if (rid === 3) return modalidades.filter((m) => Number(m.id) >= 3 && Number(m.id) <= 12);
+    if (rid === 4) return modalidades.filter((m) => Number(m.id) === 1);
+    if (rid === 7) return modalidades.filter((m) => Number(m.id) === 13);
+    return modalidades;
+  })();
   const esEdicion = !!registroEditar;
 
   const [paso, setPaso] = useState(1);
@@ -88,8 +94,9 @@ export default function FormNuevoRegistro({ usuario, registros, onGuardar, onCan
   const confirmar = async () => {
     setSubmitting(true);
     try {
-      if (esEdicion) await corregirRegistro(registroEditar.id, form);
-      else await crearRegistro(form);
+      const payload = { ...form, estado_id: 3, ci: form.ci.replace(/\./g, "") };
+      if (esEdicion) await corregirRegistro(registroEditar.id, payload);
+      else await crearRegistro(payload);
       onGuardar(esEdicion);
     } catch (e) { alert(e.error || "Error al guardar registro"); }
     finally { setSubmitting(false); }
@@ -133,11 +140,11 @@ export default function FormNuevoRegistro({ usuario, registros, onGuardar, onCan
             <h3 style={{ fontSize: 16, fontWeight: 700, color: C.texto, margin: "0 0 20px" }}>Paso 1 — Datos del Beneficiario</h3>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
               <div style={{ gridColumn: "1/-1" }}><Campo label="Localidad" required error={errores.localidad_id}><Select value={form.localidad_id} onChange={(e) => setF("localidad_id", e.target.value)} disabled={locales.length === 1}><option value="">Seleccionar...</option>{locales.map((l) => <option key={l.id} value={l.id}>{l.nombre}</option>)}</Select></Campo></div>
-              <div style={{ gridColumn: "1/-1" }}><Campo label="Nombre del titular" required error={errores.titular}><Input value={form.titular} onChange={(e) => setF("titular", e.target.value)} placeholder="Ej: Juan Ramírez" /></Campo></div>
-              <Campo label="Cédula de identidad" required error={errores.ci}><Input value={form.ci} onChange={(e) => { const digits = e.target.value.replace(/\D/g, ""); const formatted = digits.replace(/\B(?=(\d{3})+(?!\d))/g, "."); setF("ci", formatted); }} placeholder="Ej: 3.456.789" /></Campo>
-              <Campo label="Celular"><Input value={form.celular} onChange={(e) => setF("celular", e.target.value)} placeholder="Ej: 0981-123456" /></Campo>
-              <Campo label="Manzana" required error={errores.manzana}><Input value={form.manzana} onChange={(e) => setF("manzana", e.target.value)} onBlur={() => { if (form.manzana.trim().length === 1) setErrores((prev) => ({ ...prev, manzana: "Mínimo 2 dígitos." })); else setErrores((prev) => ({ ...prev, manzana: undefined })); }} placeholder="Ej: 12" /></Campo>
-              <Campo label="Lote" required error={errores.lote}><Input value={form.lote} onChange={(e) => setF("lote", e.target.value)} onBlur={() => { if (form.lote.trim().length === 1) setErrores((prev) => ({ ...prev, lote: "Mínimo 2 dígitos." })); else setErrores((prev) => ({ ...prev, lote: undefined })); }} placeholder="Ej: 05" /></Campo>
+              <div style={{ gridColumn: "1/-1" }}><Campo label="Nombre del titular" required error={errores.titular}><Input value={form.titular} onChange={(e) => setF("titular", e.target.value.slice(0, 60))} placeholder="Ej: Juan Ramírez" maxLength={60} /></Campo></div>
+              <Campo label="Cédula de identidad" required error={errores.ci}><Input value={form.ci} onChange={(e) => { const digits = e.target.value.replace(/\D/g, "").slice(0, 10); const formatted = digits.replace(/\B(?=(\d{3})+(?!\d))/g, "."); setF("ci", formatted); }} placeholder="Ej: 3.456.789" /></Campo>
+              <Campo label="Celular"><Input value={form.celular} onChange={(e) => setF("celular", e.target.value.slice(0, 12))} placeholder="Ej: 0981-123456" maxLength={12} /></Campo>
+              <Campo label="Manzana" required error={errores.manzana}><Input value={form.manzana} onChange={(e) => setF("manzana", e.target.value.slice(0, 4))} onBlur={() => { if (form.manzana.trim().length === 1) setErrores((prev) => ({ ...prev, manzana: "Mínimo 2 dígitos." })); else setErrores((prev) => ({ ...prev, manzana: undefined })); }} placeholder="Ej: 12" maxLength={4} /></Campo>
+              <Campo label="Lote" required error={errores.lote}><Input value={form.lote} onChange={(e) => setF("lote", e.target.value.slice(0, 4))} onBlur={() => { if (form.lote.trim().length === 1) setErrores((prev) => ({ ...prev, lote: "Mínimo 2 dígitos." })); else setErrores((prev) => ({ ...prev, lote: undefined })); }} placeholder="Ej: 05" maxLength={4} /></Campo>
             </div>
           </div>
         )}
@@ -163,7 +170,7 @@ export default function FormNuevoRegistro({ usuario, registros, onGuardar, onCan
               </div>
             </Campo>
             <Campo label="Fecha de ejecución" required error={errores.fecha_ejec}><Input type="date" value={form.fecha_ejec} max={new Date().toISOString().split("T")[0]} onChange={(e) => setF("fecha_ejec", e.target.value)} style={{ maxWidth: 240 }} /></Campo>
-            <Campo label="Modalidad / Estrategia" required error={errores.modalidad_id}>
+            <Campo label="Estrategia" required error={errores.modalidad_id}>
               <Select value={form.modalidad_id} onChange={(e) => setF("modalidad_id", e.target.value)}>
                 <option value="">Seleccionar...</option>
                 {usuario.rol === "Trabajadora Social"

@@ -140,7 +140,7 @@ export default function VistaAdmin({ localidades, modalidades }) {
           {loading ? <Loading /> : <>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
               <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>Usuarios ({usuarios.length})</h3>
-              {!editandoU && <button onClick={() => setShowNew(!showNew)} style={{ padding: "9px 18px", background: C.azul, color: C.blanco, border: "none", borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: "pointer" }}>+ Nuevo usuario</button>}
+              {!editandoU && !showNew && <button onClick={() => setShowNew(true)} style={{ padding: "9px 18px", background: C.azul, color: C.blanco, border: "none", borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: "pointer" }}>+ Nuevo usuario</button>}
             </div>
             {showNew && (
               <div className="fade-in" style={{ background: C.azulSuave, borderRadius: 14, padding: 20, marginBottom: 20, border: `1px solid ${C.grisMedio}` }}>

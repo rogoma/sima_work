@@ -19,19 +19,21 @@ export default function VistaLocalidad({ localidadId, registros, usuario, setVis
   if (loading) return <Loading text="Cargando localidad..." />;
   if (!locData) return <div style={{ padding: 40, textAlign: "center", color: C.grisTexto }}>Localidad no encontrada.</div>;
 
-  const conn = locData.conectados_total || 0;
   const adeq = locData.adecuaciones_total || 0;
   const proyecciones = locData.proyecciones_icaro || [];
   const locRegs = registros.filter((r) => Number(r.localidad_id) === Number(localidadId));
+  const conn      = locRegs.filter((r) => r.estado === "validado").length;
+  const pendientes = locRegs.filter((r) => r.estado === "pendiente").length;
+  const brecha    = Number(locData.previstas) - conn;
 
   return (
     <div>
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>        
-        <button onClick={() => setVista("dashboard")} style={{ padding: "8px 16px", background: C.azul, border: `1px solid ${C.grisMedio}`, borderRadius: 10, cursor: "pointer", fontSize: 13, color: C.blanco, fontWeight: 600 }}>Volver</button>
-        <div>
-          <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: C.texto, letterSpacing: "-0.03em" }}>📍 {locData.nombre}</h1>
+      <div style={{ marginBottom: 24 }}>
+        <h1 style={{ margin: "0 0 4px", fontSize: 24, fontWeight: 800, color: C.texto, letterSpacing: "-0.03em" }}>📍 {locData.nombre}</h1>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <p style={{ margin: 0, fontSize: 13, color: C.grisTexto }}>Junta de Saneamiento de {locData.nombre}</p>
-        </div>        
+          <button onClick={() => setVista("dashboard")} style={{ padding: "5px 16px", background: C.rojo, border: "none", borderRadius: 10, cursor: "pointer", fontSize: 13, color: C.blanco, fontWeight: 600 }}>Volver</button>
+        </div>
       </div>
 
       <div style={{ display: "flex", gap: 14, marginBottom: 24, flexWrap: "wrap" }}>
@@ -39,8 +41,8 @@ export default function VistaLocalidad({ localidadId, registros, usuario, setVis
         <StatCard icon="🔗" label="Conectados" value={fmt(conn)} sub="Solo validados" color={C.azul} />
         {/* <StatCard icon="🏠" label="Adecuaciones" value={fmt(adeq)} color="#B45309" /> */}
         {/* <StatCard icon="🏗️" label="CI Construidas" value={fmt(locData.ci)} color={C.grisTexto} /> */}
-        <StatCard icon="⏳" label="Pendientes" value={locData.pendientes || 0} color={C.amarillo} />
-        <StatCard icon="📉" label="Brecha" value={fmt(locData.brecha || 0)} color={C.rojo} />
+        <StatCard icon="⏳" label="Pendientes" value={pendientes} color={C.amarillo} />
+        <StatCard icon="📉" label="Brecha" value={fmt(brecha)} color={C.rojo} />
       </div>
 
       <div style={{ background: C.blanco, borderRadius: 14, padding: "20px 24px", border: `1px solid ${C.grisMedio}`, marginBottom: 24 }}>

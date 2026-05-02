@@ -42,7 +42,7 @@ export default function VistaAdmin({ localidades, modalidades }) {
 
   useEffect(() => {
     Promise.all([fetchUsuarios(), fetchRoles()])
-      .then(([u, r]) => { setUsuarios(u); setRoles(r); if (r.length) setNuevoU(n => ({ ...n, rol_id: r[0].id })); })
+      .then(([u, r]) => { setUsuarios(u); setRoles(r); if (r.length) { const rid = r[0].id; setNuevoU(n => ({ ...n, rol_id: rid, localidades: [1, 3, 5].includes(rid) ? localidades.map(l => l.id) : [2, 7].includes(rid) ? localidades.slice(0, 1).map(l => l.id) : n.localidades })); } })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
@@ -87,6 +87,7 @@ export default function VistaAdmin({ localidades, modalidades }) {
 
   const crearUsuario = async () => {
     if (!nuevoU.user || !nuevoU.nombre || !nuevoU.password) return;
+    if (nuevoU.rol_id === 2 && !nuevoU.localidades.length) { alert("El rol Coordinador requiere al menos una localidad."); return; }
     try {
       const created = await apiCrearUsuario(nuevoU);
       setUsuarios((u) => [...u, created]);
@@ -110,6 +111,7 @@ export default function VistaAdmin({ localidades, modalidades }) {
 
   const guardarEdicion = async () => {
     if (!editandoU.nombre) return;
+    if (editandoU.rol_id === 2 && !editandoU.localidades.length) { alert("El rol Coordinador requiere al menos una localidad."); return; }
     const payload = { nombre: editandoU.nombre, rol_id: editandoU.rol_id, localidades: editandoU.localidades, estado_id: editandoU.estado_id };
     if (editandoU.password) payload.password = editandoU.password;
     try {
@@ -117,6 +119,58 @@ export default function VistaAdmin({ localidades, modalidades }) {
       setUsuarios((u) => u.map((x) => x.id === editandoU.id ? { ...x, ...updated } : x));
       setEditandoU(null);
     } catch (e) { alert(e.error || "Error al editar usuario"); }
+  };
+
+  const generarPDFUsuarios = () => {
+    const rows = usuarios.map((u) => {
+      const rol  = getRolNombre(u);
+      const locs = u.localidades?.length ? u.localidades.map((id) => getLocNombre(id)).join(", ") : "Todas";
+      const est  = ESTADOS.find((e) => e.id === u.estado_id)?.nombre || "Activo";
+      return `<tr>
+        <td>${u.nombre || "—"}</td>
+        <td>${u.user || "—"}</td>
+        <td>${rol}</td>
+        <td>${locs}</td>
+        <td>${est}</td>
+      </tr>`;
+    }).join("");
+
+    const logoUrl = `${window.location.origin}/Logo_Senasa.jpg`;
+    const html = `<!DOCTYPE html>
+<html><head>
+  <meta charset="utf-8"/>
+  <title>Listado de Usuarios</title>
+  <style>
+    body { font-family: Arial, sans-serif; font-size: 12px; color: #1e293b; margin: 24px; }
+    .header { display: flex; align-items: center; gap: 16px; margin-bottom: 14px; border-bottom: 2px solid #1255A1; padding-bottom: 10px; }
+    .header img { height: 54px; object-fit: contain; }
+    .header-text h2 { font-size: 15px; margin: 0 0 2px; color: #1255A1; }
+    .header-text .sub { font-size: 10px; color: #64748b; }
+    table { width: 100%; border-collapse: collapse; }
+    th { background: #1255A1; color: #fff; padding: 7px 10px; text-align: left; font-size: 11px; font-weight: 700; }
+    td { padding: 6px 10px; border-bottom: 1px solid #e2e8f0; font-size: 12px; }
+    tr:nth-child(even) td { background: #f8fafc; }
+    @media print { body { margin: 10px; } }
+  </style>
+</head><body>
+  <div class="header">
+    <img src="${logoUrl}" alt="SENASA" />
+    <div class="header-text">
+      <h2>SIMA — Listado de Usuarios</h2>
+      <div class="sub">Generado: ${new Date().toLocaleString("es-PY")} &nbsp;·&nbsp; Total: ${usuarios.length} usuarios</div>
+    </div>
+  </div>
+  <table>
+    <thead><tr><th>Usuario</th><th>Login</th><th>Rol</th><th>Localidades</th><th>Estado</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>
+</body></html>`;
+
+    const win = window.open("", "_blank", "width=960,height=700");
+    win.document.write(html);
+    win.document.close();
+    win.focus();
+    setTimeout(() => { win.print(); win.close(); }, 800);
   };
 
   const tabs = [{ id: "usuarios", l: "👤 Usuarios" }, { id: "metas", l: "🎯 Metas" }, { id: "estrategias", l: "🔧 Estrategias" }];
@@ -140,7 +194,10 @@ export default function VistaAdmin({ localidades, modalidades }) {
           {loading ? <Loading /> : <>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
               <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>Usuarios ({usuarios.length})</h3>
-              {!editandoU && !showNew && <button onClick={() => setShowNew(true)} style={{ padding: "9px 18px", background: C.azul, color: C.blanco, border: "none", borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: "pointer" }}>+ Nuevo usuario</button>}
+              <div style={{ display: "flex", gap: 8 }}>
+                <button onClick={generarPDFUsuarios} style={{ padding: "9px 18px", background: C.rojo, color: C.blanco, border: "none", borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: "pointer" }}>🖨️ Listado de Usuarios</button>
+                {!editandoU && !showNew && <button onClick={() => setShowNew(true)} style={{ padding: "9px 18px", background: C.azul, color: C.blanco, border: "none", borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: "pointer" }}>+ Nuevo usuario</button>}
+              </div>
             </div>
             {showNew && (
               <div className="fade-in" style={{ background: C.azulSuave, borderRadius: 14, padding: 20, marginBottom: 20, border: `1px solid ${C.grisMedio}` }}>
@@ -149,7 +206,7 @@ export default function VistaAdmin({ localidades, modalidades }) {
                   <Campo label="Usuario (letras, números, _)" required><Input value={nuevoU.user} onChange={(e) => setN("user", e.target.value)} placeholder="ej: j_caacupe" /></Campo>
                   <Campo label="Nombre" required><Input value={nuevoU.nombre} onChange={(e) => setN("nombre", e.target.value)} placeholder="Nombre" /></Campo>
                   <Campo label="Contraseña" required><Input type="password" value={nuevoU.password} onChange={(e) => setN("password", e.target.value)} placeholder="Mín. 6 caracteres" /></Campo>
-                  <Campo label="Rol" required><Select value={nuevoU.rol_id} onChange={(e) => { const rid = Number(e.target.value); setN("rol_id", rid); if (![1, 2, 3, 4, 5, 7].includes(rid)) setN("localidades", []); else if ([3, 7].includes(rid)) setN("localidades", nuevoU.localidades.slice(0, 1)); }}>{roles.map((r) => <option key={r.id} value={r.id}>{r.nombre}</option>)}</Select></Campo>
+                  <Campo label="Rol" required><Select value={nuevoU.rol_id} onChange={(e) => { const rid = Number(e.target.value); setN("rol_id", rid); if (![1, 2, 3, 4, 5, 7].includes(rid)) setN("localidades", []); else if ([1, 3, 5].includes(rid)) setN("localidades", localidades.map(l => l.id)); else if ([2, 7].includes(rid)) setN("localidades", localidades.slice(0, 1).map(l => l.id)); }}>{roles.map((r) => <option key={r.id} value={r.id}>{r.nombre}</option>)}</Select></Campo>
                   {[1, 2, 3, 4, 5, 7].includes(nuevoU.rol_id) && (
                     <Campo label={[4, 7].includes(nuevoU.rol_id) ? "Localidad" : "Localidades"}>
                       <div style={{ display: "flex", flexWrap: "wrap", gap: 6, padding: 8, border: `1px solid ${C.grisBorde}`, borderRadius: 10, background: C.blanco }}>
@@ -184,7 +241,7 @@ export default function VistaAdmin({ localidades, modalidades }) {
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                     <Campo label="Nombre" required><Input value={editandoU.nombre} onChange={(e) => setE("nombre", e.target.value)} placeholder="Nombre" /></Campo>
                     <Campo label="Nueva contraseña"><Input type="password" value={editandoU.password} onChange={(e) => setE("password", e.target.value)} placeholder="Dejar en blanco para no cambiar" /></Campo>
-                    <Campo label="Rol" required><Select value={editandoU.rol_id} onChange={(e) => { const rid = Number(e.target.value); setE("rol_id", rid); if (![1, 2, 3, 4, 5, 7].includes(rid)) setE("localidades", []); else if ([3, 7].includes(rid)) setE("localidades", editandoU.localidades.slice(0, 1)); }}>{roles.map((r) => <option key={r.id} value={r.id}>{r.nombre}</option>)}</Select></Campo>
+                    <Campo label="Rol" required><Select value={editandoU.rol_id} onChange={(e) => { const rid = Number(e.target.value); setE("rol_id", rid); if (![1, 2, 3, 4, 5, 7].includes(rid)) setE("localidades", []); else if ([1, 3, 5].includes(rid)) setE("localidades", localidades.map(l => l.id)); else if ([2, 7].includes(rid)) setE("localidades", editandoU.localidades.slice(0, 1)); }}>{roles.map((r) => <option key={r.id} value={r.id}>{r.nombre}</option>)}</Select></Campo>
                     <Campo label="Estado" required><Select value={editandoU.estado_id} onChange={(e) => setE("estado_id", Number(e.target.value))}>{ESTADOS.map((e) => <option key={e.id} value={e.id}>{e.nombre}</option>)}</Select></Campo>
                     {[1, 2, 3, 4, 5, 7].includes(editandoU.rol_id) && (
                       <Campo label={[4, 7].includes(editandoU.rol_id) ? "Localidad" : "Localidades"}>

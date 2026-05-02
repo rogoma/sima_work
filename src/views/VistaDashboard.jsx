@@ -103,8 +103,8 @@ export default function VistaDashboard({ usuario, localidades, registros, setVis
               </thead>
               <tbody>
                 {localidadesFiltradas.map((loc, i) => {
-                  const p = loc.avance_pct || 0;
-                  const conn = loc.conectados_total || 0;
+                  const conn = registros.filter((r) => Number(r.localidad_id) === Number(loc.id) && r.estado === "validado").length;
+                  const p = loc.previstas ? parseFloat(((conn / loc.previstas) * 100).toFixed(2)) : 0;
                   return (
                     <tr key={loc.id} style={{ backgroundColor: i % 2 === 0 ? C.blanco : C.gris, borderBottom: `1px solid ${C.grisMedio}`, transition: "background 0.15s" }}
                       onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = C.azulSuave)}

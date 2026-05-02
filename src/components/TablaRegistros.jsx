@@ -7,6 +7,25 @@ import { fmt, fmtDT } from "../services/helpers";
 const fmtNum = n => String(Math.round(Number(n))).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 import { useMobile } from "../hooks/useMobile";
 
+function EvidenciaIcons({ registro, size = 18 }) {
+  const urls = [registro.evidencia_url, registro.evidencia_url_2, registro.evidencia_url_3].filter(Boolean);
+  if (!urls.length) return <span style={{ color: C.grisTexto, fontSize: 11 }}>—</span>;
+  return (
+    <div style={{ display: "flex", gap: 4 }}>
+      {urls.map((url, idx) => (
+        <a key={idx} href={url} target="_blank" rel="noopener noreferrer" title={`Ver evidencia ${idx + 1}`}
+          style={{ color: C.azul, display: "inline-flex", alignItems: "center" }}
+          onClick={e => e.stopPropagation()}>
+          <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </a>
+      ))}
+    </div>
+  );
+}
+
 // ─── MODAL DETALLE ───────────────────────────────────────────────────────────
 export function ModalDetalleRegistro({ registro: r, onClose, localidades = [] }) {
   const [fullReg, setFullReg] = useState(r);
@@ -31,14 +50,9 @@ export function ModalDetalleRegistro({ registro: r, onClose, localidades = [] })
           ["Estado", <Badge estado={fullReg.estado} />],
           ["Fecha Ejecución", fmt(fullReg.fecha_ejec)],
           ["Fecha Carga", fmtDT(fullReg.fecha_carga)],
-          ["Cargado por", fullReg.cargado_por_nombre || fullReg.cargado_por],
-          fullReg.evidencia_url && ["Evidencia",
-            <a href={fullReg.evidencia_url} target="_blank" rel="noopener noreferrer" title="Ver evidencia" style={{ color: C.azul, display: "inline-flex", alignItems: "center", cursor: "pointer" }}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                <circle cx="12" cy="12" r="3"/>
-              </svg>
-            </a>
+          // ["Cargado por", fullReg.cargado_por_nombre || fullReg.cargado_por],
+          (fullReg.evidencia_url || fullReg.evidencia_url_2 || fullReg.evidencia_url_3) && ["Evidencia",
+            <EvidenciaIcons registro={fullReg} size={22} />
           ],
         ].filter(Boolean).map(([k, v]) => (
           <div key={k}>
@@ -52,7 +66,7 @@ export function ModalDetalleRegistro({ registro: r, onClose, localidades = [] })
           <strong>Observaciones:</strong> {fullReg.observaciones}
         </div>
       )}
-      <div style={{ borderTop: `1px solid ${C.grisMedio}`, paddingTop: 16 }}>
+      {/* <div style={{ borderTop: `1px solid ${C.grisMedio}`, paddingTop: 16 }}>
         <h4 style={{ fontSize: 13, fontWeight: 700, marginBottom: 12, color: C.texto }}>Historial de estados</h4>
         {(fullReg.historial || []).map((h, i) => (
           <div key={i} style={{ display: "flex", gap: 12, marginBottom: 10, paddingLeft: 16, borderLeft: `2px solid ${h.estado === "validado" ? C.verde : h.estado === "rechazado" ? C.rojo : C.amarillo}` }}>
@@ -63,7 +77,7 @@ export function ModalDetalleRegistro({ registro: r, onClose, localidades = [] })
             </div>
           </div>
         ))}
-      </div>
+      </div> */}
     </Modal>
   );
 }
@@ -98,6 +112,7 @@ export default function TablaRegistros({ registros, usuario, compact = false, on
                 <TipoBadge tipo={r.tipo} />
                 {r.modalidad_cat && <CatBadge cat={r.modalidad_cat} />}
                 <span style={{ fontSize: 11, color: C.grisTexto }}>{fmt(r.fecha_ejec)}</span>
+                <EvidenciaIcons registro={r} />
               </div>
               <div style={{ display: "flex", gap: 8 }}>
                 <button
@@ -127,7 +142,7 @@ export default function TablaRegistros({ registros, usuario, compact = false, on
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
           <thead>
             <tr style={{ backgroundColor: C.gris }}>
-              {["ID", "Titular", "Localidad", "Tipo", "Modalidad", "Fecha Ejec.", "Estado", "Acciones"]
+              {["ID", "Titular", "Localidad", "Tipo", "Modalidad", "Fecha Ejec.", "Estado", "Evidencia", "Acciones"]
                 .filter((_, i) => !compact || i !== 2)
                 .map((h) => (
                   <th key={h} style={{ padding: "10px 14px", textAlign: "left", fontWeight: 700, color: C.grisTexto, fontSize: 12, borderBottom: `1px solid ${C.grisMedio}`, whiteSpace: "nowrap" }}>{h}</th>
@@ -150,6 +165,7 @@ export default function TablaRegistros({ registros, usuario, compact = false, on
                 </td>
                 <td style={{ padding: "11px 14px", color: C.grisTexto, whiteSpace: "nowrap" }}>{fmt(r.fecha_ejec)}</td>
                 <td style={{ padding: "11px 14px" }}><Badge estado={r.estado} /></td>
+                <td style={{ padding: "11px 14px" }}><EvidenciaIcons registro={r} /></td>
                 <td style={{ padding: "11px 14px" }}>
                   <div style={{ display: "flex", gap: 6 }}>
                     <button

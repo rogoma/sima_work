@@ -25,14 +25,20 @@ export default function FormNuevoRegistro({ usuario, registros, onGuardar, onCan
     celular: registroEditar?.celular || "", manzana: registroEditar?.manzana || "",
     lote: registroEditar?.lote || "", tipo: registroEditar?.tipo || "conectado",
     modalidad_id: registroEditar?.modalidad_id || (misModalidades.length === 1 ? String(misModalidades[0].id) : ""), fecha_ejec: registroEditar?.fecha_ejec?.split("T")[0] || "",
-    observaciones: registroEditar?.observaciones || "", evidencia_url: registroEditar?.evidencia_url || "",
+    observaciones: registroEditar?.observaciones || "",
+    evidencia_url: registroEditar?.evidencia_url || "",
+    evidencia_url_2: registroEditar?.evidencia_url_2 || "",
+    evidencia_url_3: registroEditar?.evidencia_url_3 || "",
   });
   const [errores, setErrores] = useState({});
   const [alertaDup, setAlertaDup] = useState(null);
   const [bloqueoDup, setBloqueoDup] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const fileInputRef = useRef(null);
+  const [uploading, setUploading] = useState([false, false, false]);
+  const fileRef1 = useRef(null);
+  const fileRef2 = useRef(null);
+  const fileRef3 = useRef(null);
+  const fileInputRefs = [fileRef1, fileRef2, fileRef3];
 
   const setF = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
@@ -60,15 +66,17 @@ export default function FormNuevoRegistro({ usuario, registros, onGuardar, onCan
   const modNombre = (id) => modalidades.find((m) => Number(m.id) === Number(id))?.nombre || id;
   const modCat = (id) => modalidades.find((m) => Number(m.id) === Number(id))?.cat || "";
 
-  const handleFileUpload = async (e) => {
+  const EVID_KEYS = ["evidencia_url", "evidencia_url_2", "evidencia_url_3"];
+
+  const handleFileUpload = async (e, idx) => {
     const file = e.target.files[0];
     if (!file) return;
-    setUploading(true);
+    setUploading(prev => prev.map((v, i) => i === idx ? true : v));
     try {
       const data = await subirEvidencia(file);
-      setF("evidencia_url", data.url);
+      setF(EVID_KEYS[idx], data.url);
     } catch (err) { alert(err.error || "Error al subir archivo"); }
-    finally { setUploading(false); }
+    finally { setUploading(prev => prev.map((v, i) => i === idx ? false : v)); }
   };
 
   const validarPaso = (p) => {
@@ -142,7 +150,7 @@ export default function FormNuevoRegistro({ usuario, registros, onGuardar, onCan
               <div style={{ gridColumn: "1/-1" }}><Campo label="Localidad" required error={errores.localidad_id}><Select value={form.localidad_id} onChange={(e) => setF("localidad_id", e.target.value)} disabled={locales.length === 1}><option value="">Seleccionar...</option>{locales.map((l) => <option key={l.id} value={l.id}>{l.nombre}</option>)}</Select></Campo></div>
               <div style={{ gridColumn: "1/-1" }}><Campo label="Nombre del titular" required error={errores.titular}><Input value={form.titular} onChange={(e) => setF("titular", e.target.value.slice(0, 60))} placeholder="Ej: Juan Ramírez" maxLength={60} /></Campo></div>
               <Campo label="Cédula de identidad" required error={errores.ci}><Input value={form.ci} onChange={(e) => { const digits = e.target.value.replace(/\D/g, "").slice(0, 10); const formatted = digits.replace(/\B(?=(\d{3})+(?!\d))/g, "."); setF("ci", formatted); }} placeholder="Ej: 3.456.789" /></Campo>
-              <Campo label="Celular"><Input value={form.celular} onChange={(e) => setF("celular", e.target.value.slice(0, 12))} placeholder="Ej: 0981-123456" maxLength={12} /></Campo>
+              <Campo label="Celular"><Input value={form.celular} onChange={(e) => setF("celular", e.target.value.slice(0, 12))} placeholder="Ej: 0981-123456" maxLength={11} /></Campo>
               <Campo label="Manzana" required error={errores.manzana}><Input value={form.manzana} onChange={(e) => setF("manzana", e.target.value.slice(0, 4))} onBlur={() => { if (form.manzana.trim().length === 1) setErrores((prev) => ({ ...prev, manzana: "Mínimo 2 dígitos." })); else setErrores((prev) => ({ ...prev, manzana: undefined })); }} placeholder="Ej: 12" maxLength={4} /></Campo>
               <Campo label="Lote" required error={errores.lote}><Input value={form.lote} onChange={(e) => setF("lote", e.target.value.slice(0, 4))} onBlur={() => { if (form.lote.trim().length === 1) setErrores((prev) => ({ ...prev, lote: "Mínimo 2 dígitos." })); else setErrores((prev) => ({ ...prev, lote: undefined })); }} placeholder="Ej: 05" maxLength={4} /></Campo>
             </div>
@@ -175,7 +183,7 @@ export default function FormNuevoRegistro({ usuario, registros, onGuardar, onCan
                 <option value="">Seleccionar...</option>
                 {usuario.rol === "Trabajadora Social"
                   ? misModalidades.map((m) => <option key={m.id} value={m.id}>{m.nombre}</option>)
-                  : ["JUNTA", "CONTRATISTA", "ICARO"].map((cat) => { const mods = misModalidades.filter((m) => m.cat === cat); if (!mods.length) return null; return <optgroup key={cat} label={`── ${cat} ──`}>{mods.map((m) => <option key={m.id} value={m.id}>{m.nombre}</option>)}</optgroup>; })}
+                  : ["JUNTA", "CONTRATISTA", "ICARO", "TRABAJADORA SOCIAL"].map((cat) => { const mods = misModalidades.filter((m) => m.cat === cat); if (!mods.length) return null; return <optgroup key={cat} label={`── ${cat} ──`}>{mods.map((m) => <option key={m.id} value={m.id}>{m.nombre}</option>)}</optgroup>; })}
               </Select>
               {form.modalidad_id && <div style={{ marginTop: 8, display: "flex", gap: 8, alignItems: "center" }}><CatBadge cat={modCat(form.modalidad_id)} /><span style={{ fontSize: 12, color: C.grisTexto }}>{modNombre(form.modalidad_id)}</span></div>}
             </Campo>
@@ -185,12 +193,32 @@ export default function FormNuevoRegistro({ usuario, registros, onGuardar, onCan
           <div className="fade-in">
             <h3 style={{ fontSize: 16, fontWeight: 700, color: C.texto, margin: "0 0 20px" }}>Paso 3 — Evidencia y Observaciones</h3>
             <Campo label="Evidencia fotográfica o documental" required error={errores.evidencia_url}>
-              <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp,application/pdf" style={{ display: "none" }} onChange={handleFileUpload} />
-              <div style={{ border: `2px dashed ${form.evidencia_url ? C.verde : C.grisBorde}`, borderRadius: 12, padding: 24, textAlign: "center", background: form.evidencia_url ? C.verdeC : C.gris, cursor: "pointer", transition: "all 0.2s" }}
-                onClick={() => fileInputRef.current?.click()}>
-                <div style={{ fontSize: 28, marginBottom: 8 }}>{uploading ? "⏳" : form.evidencia_url ? "✅" : "📷"}</div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: form.evidencia_url ? "#065F46" : C.grisTexto }}>{uploading ? "Subiendo..." : form.evidencia_url ? `Archivo: ${form.evidencia_url.split("/").pop()}` : "Haga clic para adjuntar archivo"}</div>
-                <div style={{ fontSize: 11, color: C.grisTexto, marginTop: 4 }}>JPG, PNG, WEBP o PDF · Máximo 10 MB</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {EVID_KEYS.map((key, idx) => {
+                  const url = form[key];
+                  const isUploading = uploading[idx];
+                  const prevFilled = idx === 0 || !!form[EVID_KEYS[idx - 1]];
+                  if (!prevFilled) return null;
+                  return (
+                    <div key={key}>
+                      <input ref={fileInputRefs[idx]} type="file" accept="image/jpeg,image/png,image/webp,application/pdf" style={{ display: "none" }} onChange={(e) => handleFileUpload(e, idx)} />
+                      <div style={{ border: `2px dashed ${url ? C.verde : C.grisBorde}`, borderRadius: 12, padding: "16px 24px", textAlign: "center", background: url ? C.verdeC : C.gris, cursor: "pointer", transition: "all 0.2s", display: "flex", alignItems: "center", gap: 14 }}
+                        onClick={() => fileInputRefs[idx].current?.click()}>
+                        <div style={{ fontSize: 24 }}>{isUploading ? "⏳" : url ? "✅" : "📷"}</div>
+                        <div style={{ textAlign: "left", flex: 1 }}>
+                          <div style={{ fontSize: 12, fontWeight: 700, color: C.grisTexto, marginBottom: 2 }}>
+                            Evidencia {idx + 1}{idx === 0 ? " *" : " (opcional)"}
+                          </div>
+                          <div style={{ fontSize: 13, fontWeight: 600, color: url ? "#065F46" : C.grisTexto }}>
+                            {isUploading ? "Subiendo..." : url ? url.split("/").pop() : "Haga clic para adjuntar"}
+                          </div>
+                          <div style={{ fontSize: 11, color: C.grisTexto, marginTop: 2 }}>JPG, PNG, WEBP o PDF · Máx. 10 MB</div>
+                        </div>
+                        {url && <button type="button" onClick={(e) => { e.stopPropagation(); setF(key, ""); }} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 16, color: C.rojo, padding: 4 }}>✕</button>}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </Campo>
             <Campo label="Observaciones"><Textarea value={form.observaciones} onChange={(e) => setF("observaciones", e.target.value)} placeholder="Notas adicionales..." /></Campo>
@@ -201,7 +229,7 @@ export default function FormNuevoRegistro({ usuario, registros, onGuardar, onCan
             <h3 style={{ fontSize: 16, fontWeight: 700, color: C.texto, margin: "0 0 20px" }}>Paso 4 — Confirmar y Enviar</h3>
             <div style={{ background: C.gris, borderRadius: 12, padding: 20, marginBottom: 20 }}>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, fontSize: 13 }}>
-                {[["Localidad", locNombre(form.localidad_id)], ["Titular", form.titular], ["CI", form.ci], ["Mz / Lote", `${form.manzana} / ${form.lote}`], ["Tipo", form.tipo === "conectado" ? "🔗 Conectado" : "🏠 Adecuación"], ["Modalidad", modNombre(form.modalidad_id)], ["Fecha Ejec.", fmt(form.fecha_ejec)], ["Evidencia", form.evidencia_url?.split("/").pop() || "-"]].map(([k, v]) => (
+                {[["Localidad", locNombre(form.localidad_id)], ["Titular", form.titular], ["CI", form.ci], ["Mz / Lote", `${form.manzana} / ${form.lote}`], ["Tipo", form.tipo === "conectado" ? "🔗 Conectado" : "🏠 Adecuación"], ["Modalidad", modNombre(form.modalidad_id)], ["Fecha Ejec.", fmt(form.fecha_ejec)], ["Evidencia 1", form.evidencia_url?.split("/").pop() || "-"], ...(form.evidencia_url_2 ? [["Evidencia 2", form.evidencia_url_2.split("/").pop()]] : []), ...(form.evidencia_url_3 ? [["Evidencia 3", form.evidencia_url_3.split("/").pop()]] : [])].map(([k, v]) => (
                   <div key={k}><div style={{ fontSize: 11, fontWeight: 700, color: C.grisTexto, textTransform: "uppercase", letterSpacing: "0.05em" }}>{k}</div><div style={{ fontWeight: 600, color: C.texto, marginTop: 2 }}>{v}</div></div>
                 ))}
               </div>

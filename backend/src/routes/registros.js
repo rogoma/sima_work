@@ -80,7 +80,7 @@ router.get("/", auth, async (req, res) => {
             r.titular, r.ci, r.celular, r.manzana, r.lote,
             r.fecha_ejec, r.fecha_carga, r.estado_id, LOWER(e.nombre) AS estado,
             r.usuario_id_carga, u.nombre AS cargado_por_nombre,
-            r.evidencia_url, r.observaciones
+            r.evidencia_url, r.evidencia_url_2, r.evidencia_url_3, r.observaciones
      FROM registros r
      JOIN localidades l ON l.id = r.localidad_id
      JOIN modalidades m ON m.id = r.modalidad_id
@@ -140,7 +140,7 @@ router.post(
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
-    const { localidad_id, tipo, modalidad_id, titular, ci, celular, manzana, lote, fecha_ejec, evidencia_url, observaciones } = req.body;
+    const { localidad_id, tipo, modalidad_id, titular, ci, celular, manzana, lote, fecha_ejec, evidencia_url, evidencia_url_2, evidencia_url_3, observaciones } = req.body;
     const usuario = req.usuario;
 
     if (!puedeAccederLocalidad(usuario, localidad_id)) {
@@ -165,15 +165,15 @@ router.post(
       const ahora = new Date().toISOString();
 
       const { rows: inserted } = await client.query(
-        `INSERT INTO registros (localidad_id, tipo_registro_id, modalidad_id, titular, ci, celular, manzana, lote, fecha_ejec, fecha_carga, estado_id, usuario_id_carga, evidencia_url, observaciones)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,5,$11,$12,$13)
+        `INSERT INTO registros (localidad_id, tipo_registro_id, modalidad_id, titular, ci, celular, manzana, lote, fecha_ejec, fecha_carga, estado_id, usuario_id_carga, evidencia_url, evidencia_url_2, evidencia_url_3, observaciones)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,3,$11,$12,$13,$14,$15)
          RETURNING id`,
-        [Number(localidad_id), tipoId, Number(modalidad_id), titular, ci, celular || null, manzana, lote, fecha_ejec, ahora, usuario.id, evidencia_url, observaciones || null]
+        [Number(localidad_id), tipoId, Number(modalidad_id), titular, ci, celular || null, manzana, lote, fecha_ejec, ahora, usuario.id, evidencia_url, evidencia_url_2 || null, evidencia_url_3 || null, observaciones || null]
       );
       const newId = inserted[0].id;
 
       await client.query(
-        `INSERT INTO historial_registros (registro_id, estado_id, fecha, usuario_id_verif) VALUES ($1,5,$2,$3)`,
+        `INSERT INTO historial_registros (registro_id, estado_id, fecha, usuario_id_verif) VALUES ($1,3,$2,$3)`,
         [newId, ahora, usuario.id]
       );
 
@@ -222,13 +222,13 @@ router.put(
         return res.status(403).json({ error: "Solo el usuario que cargó el registro puede corregirlo." });
       }
 
-      const { modalidad_id, tipo, titular, ci, celular, manzana, lote, fecha_ejec, evidencia_url, observaciones } = req.body;
+      const { modalidad_id, tipo, titular, ci, celular, manzana, lote, fecha_ejec, evidencia_url, evidencia_url_2, evidencia_url_3, observaciones } = req.body;
       const tipoId = tipo ? TIPO_IDS[tipo] : reg.tipo_registro_id;
       const ahora  = new Date().toISOString();
 
       await client.query(
-        `UPDATE registros SET modalidad_id=$1, tipo_registro_id=$2, titular=$3, ci=$4, celular=$5, manzana=$6, lote=$7, fecha_ejec=$8, evidencia_url=$9, observaciones=$10, estado_id=5, updated_at=$11 WHERE id=$12`,
-        [Number(modalidad_id), tipoId, titular || reg.titular, ci || reg.ci, celular ?? reg.celular, manzana || reg.manzana, lote || reg.lote, fecha_ejec, evidencia_url, observaciones ?? reg.observaciones, ahora, reg.id]
+        `UPDATE registros SET modalidad_id=$1, tipo_registro_id=$2, titular=$3, ci=$4, celular=$5, manzana=$6, lote=$7, fecha_ejec=$8, evidencia_url=$9, evidencia_url_2=$10, evidencia_url_3=$11, observaciones=$12, estado_id=5, updated_at=$13 WHERE id=$14`,
+        [Number(modalidad_id), tipoId, titular || reg.titular, ci || reg.ci, celular ?? reg.celular, manzana || reg.manzana, lote || reg.lote, fecha_ejec, evidencia_url, evidencia_url_2 || null, evidencia_url_3 || null, observaciones ?? reg.observaciones, ahora, reg.id]
       );
 
       await client.query(

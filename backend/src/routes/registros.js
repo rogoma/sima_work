@@ -166,14 +166,14 @@ router.post(
 
       const { rows: inserted } = await client.query(
         `INSERT INTO registros (localidad_id, tipo_registro_id, modalidad_id, titular, ci, celular, manzana, lote, fecha_ejec, fecha_carga, estado_id, usuario_id_carga, evidencia_url, evidencia_url_2, evidencia_url_3, observaciones)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,3,$11,$12,$13,$14,$15)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,5,$11,$12,$13,$14,$15)
          RETURNING id`,
         [Number(localidad_id), tipoId, Number(modalidad_id), titular, ci, celular || null, manzana, lote, fecha_ejec, ahora, usuario.id, evidencia_url, evidencia_url_2 || null, evidencia_url_3 || null, observaciones || null]
       );
       const newId = inserted[0].id;
 
       await client.query(
-        `INSERT INTO historial_registros (registro_id, estado_id, fecha, usuario_id_verif) VALUES ($1,3,$2,$3)`,
+        `INSERT INTO historial_registros (registro_id, estado_id, fecha, usuario_id_verif) VALUES ($1,5,$2,$3)`,
         [newId, ahora, usuario.id]
       );
 

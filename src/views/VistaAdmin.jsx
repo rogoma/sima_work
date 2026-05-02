@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import { C } from "../styles/colors";
 import { fetchUsuarios, fetchRoles, crearUsuario as apiCrearUsuario, editarUsuario as apiEditarUsuario, eliminarUsuarioDefinitivo, fetchTodasModalidades, fetchTiposModalidad, fetchEstadosModalidad, crearModalidad as apiCrearModalidad, editarModalidad as apiEditarModalidad } from "../services/api";
 import { RolBadge, CatBadge } from "../components/Badges";
@@ -121,56 +123,59 @@ export default function VistaAdmin({ localidades, modalidades }) {
     } catch (e) { alert(e.error || "Error al editar usuario"); }
   };
 
-  const generarPDFUsuarios = () => {
-    const rows = usuarios.map((u) => {
-      const rol  = getRolNombre(u);
-      const locs = u.localidades?.length ? u.localidades.map((id) => getLocNombre(id)).join(", ") : "Todas";
-      const est  = ESTADOS.find((e) => e.id === u.estado_id)?.nombre || "Activo";
-      return `<tr>
-        <td>${u.nombre || "—"}</td>
-        <td>${u.user || "—"}</td>
-        <td>${rol}</td>
-        <td>${locs}</td>
-        <td>${est}</td>
-      </tr>`;
-    }).join("");
+  const generarPDFUsuarios = async () => {
+    const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
 
-    const logoUrl = `${window.location.origin}/Logo_Senasa.jpg`;
-    const html = `<!DOCTYPE html>
-<html><head>
-  <meta charset="utf-8"/>
-  <title>Listado de Usuarios</title>
-  <style>
-    body { font-family: Arial, sans-serif; font-size: 12px; color: #1e293b; margin: 24px; }
-    .header { display: flex; align-items: center; gap: 16px; margin-bottom: 14px; border-bottom: 2px solid #1255A1; padding-bottom: 10px; }
-    .header img { height: 54px; object-fit: contain; }
-    .header-text h2 { font-size: 15px; margin: 0 0 2px; color: #1255A1; }
-    .header-text .sub { font-size: 10px; color: #64748b; }
-    table { width: 100%; border-collapse: collapse; }
-    th { background: #1255A1; color: #fff; padding: 7px 10px; text-align: left; font-size: 11px; font-weight: 700; }
-    td { padding: 6px 10px; border-bottom: 1px solid #e2e8f0; font-size: 12px; }
-    tr:nth-child(even) td { background: #f8fafc; }
-    @media print { body { margin: 10px; } }
-  </style>
-</head><body>
-  <div class="header">
-    <img src="${logoUrl}" alt="SENASA" />
-    <div class="header-text">
-      <h2>SIMA — Listado de Usuarios</h2>
-      <div class="sub">Generado: ${new Date().toLocaleString("es-PY")} &nbsp;·&nbsp; Total: ${usuarios.length} usuarios</div>
-    </div>
-  </div>
-  <table>
-    <thead><tr><th>Usuario</th><th>Login</th><th>Rol</th><th>Localidades</th><th>Estado</th></tr></thead>
-    <tbody>${rows}</tbody>
-  </table>
-</body></html>`;
+    // Logo
+    try {
+      const res = await fetch("/Logo_Senasa.jpg");
+      const blob = await res.blob();
+      const logoBase64 = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(blob);
+      });
+      doc.addImage(logoBase64, "JPEG", 14, 10, 38, 19);
+    } catch {}
 
-    const win = window.open("", "_blank", "width=960,height=700");
-    win.document.write(html);
-    win.document.close();
-    win.focus();
-    setTimeout(() => { win.print(); win.close(); }, 800);
+    // Título
+    doc.setFontSize(13);
+    doc.setTextColor(18, 85, 161);
+    doc.setFont("helvetica", "bold");
+    doc.text("SIMA — Listado de Usuarios", 58, 17);
+
+    // Subtítulo
+    doc.setFontSize(8);
+    doc.setTextColor(100, 116, 139);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Generado: ${new Date().toLocaleString("es-PY")}   ·   Total: ${usuarios.length} usuarios`, 58, 24);
+
+    // Línea separadora
+    doc.setDrawColor(18, 85, 161);
+    doc.setLineWidth(0.4);
+    doc.line(14, 32, 196, 32);
+
+    // Tabla
+    const filas = usuarios.map((u) => [
+      u.nombre || "—",
+      u.user || "—",
+      getRolNombre(u),
+      u.localidades?.length ? u.localidades.map((id) => getLocNombre(id)).join(", ") : "Todas",
+      ESTADOS.find((e) => e.id === u.estado_id)?.nombre || "Activo",
+    ]);
+
+    autoTable(doc, {
+      startY: 35,
+      head: [["Usuario", "Login", "Rol", "Localidades", "Estado"]],
+      body: filas,
+      headStyles: { fillColor: [18, 85, 161], fontSize: 9, fontStyle: "bold", textColor: 255 },
+      bodyStyles: { fontSize: 9, textColor: 30 },
+      alternateRowStyles: { fillColor: [248, 250, 252] },
+      styles: { cellPadding: 3, overflow: "linebreak" },
+      columnStyles: { 3: { cellWidth: 55 } },
+    });
+
+    doc.save("listado_usuarios.pdf");
   };
 
   const tabs = [{ id: "usuarios", l: "👤 Usuarios" }, { id: "metas", l: "🎯 Metas" }, { id: "estrategias", l: "🔧 Estrategias" }];

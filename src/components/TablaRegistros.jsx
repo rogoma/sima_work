@@ -51,7 +51,7 @@ export function ModalDetalleRegistro({ registro: r, onClose, localidades = [] })
           ["Fecha Ejecución", fmt(fullReg.fecha_ejec)],
           ["Fecha Carga", fmtDT(fullReg.fecha_carga)],
           // ["Cargado por", fullReg.cargado_por_nombre || fullReg.cargado_por],
-          (fullReg.evidencia_url || fullReg.evidencia_url_2 || fullReg.evidencia_url_3) && ["Evidencia",
+          (fullReg.evidencia_url || fullReg.evidencia_url_2 || fullReg.evidencia_url_3) && ["Evidencias",
             <EvidenciaIcons registro={fullReg} size={22} />
           ],
         ].filter(Boolean).map(([k, v]) => (

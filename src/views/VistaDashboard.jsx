@@ -68,7 +68,7 @@ export default function VistaDashboard({ usuario, localidades, registros, setVis
         <div style={{ display: "flex", gap: 16, marginBottom: 24, flexWrap: "wrap" }}>
           <StatCard icon="🎯" label="Meta" value={fmt(d.meta)} color={C.texto} />
           <StatCard icon="🔗" label="Conectados a la Red" value={fmt(d.conectados_total)} color={C.azul} />
-          <StatCard icon="⏳" label="Pendientes Validación" value={fmt(d.pendientes)} color={C.amarillo} />
+          <StatCard icon="⏳" label="Pendientes Validación" value={registros.filter(r => r.estado === "pendiente").length} color={C.amarillo} />
           <StatCard icon="📈" label="Avance del Programa" value={`${d.avance_pct}%`} color={C.verde} />
           <StatCard icon="↔️" label="Brecha" value={fmt(d.brecha)} color={C.rojo} />
         </div>

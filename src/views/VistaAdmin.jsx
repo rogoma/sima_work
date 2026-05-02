@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from "react";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import { C } from "../styles/colors";
 import { fetchUsuarios, fetchRoles, crearUsuario as apiCrearUsuario, editarUsuario as apiEditarUsuario, eliminarUsuarioDefinitivo, fetchTodasModalidades, fetchTiposModalidad, fetchEstadosModalidad, crearModalidad as apiCrearModalidad, editarModalidad as apiEditarModalidad } from "../services/api";
 import { RolBadge, CatBadge } from "../components/Badges";
@@ -124,6 +122,8 @@ export default function VistaAdmin({ localidades, modalidades }) {
   };
 
   const generarPDFUsuarios = async () => {
+    const { default: jsPDF } = await import("jspdf");
+    const { default: autoTable } = await import("jspdf-autotable");
     const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
 
     // Logo

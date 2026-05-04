@@ -87,7 +87,7 @@ export default function VistaAdmin({ localidades, modalidades }) {
 
   const crearUsuario = async () => {
     if (!nuevoU.user || !nuevoU.nombre || !nuevoU.password) return;
-    if (nuevoU.rol_id === 2 && !nuevoU.localidades.length) { alert("El rol Coordinador requiere al menos una localidad."); return; }
+    if ([2, 4, 7].includes(nuevoU.rol_id) && !nuevoU.localidades.length) { alert("Este rol requiere seleccionar una localidad."); return; }
     try {
       const created = await apiCrearUsuario(nuevoU);
       setUsuarios((u) => [...u, created]);
@@ -111,7 +111,7 @@ export default function VistaAdmin({ localidades, modalidades }) {
 
   const guardarEdicion = async () => {
     if (!editandoU.nombre) return;
-    if (editandoU.rol_id === 2 && !editandoU.localidades.length) { alert("El rol Coordinador requiere al menos una localidad."); return; }
+    if ([2, 7].includes(editandoU.rol_id) && !editandoU.localidades.length) { alert("Este rol requiere seleccionar al menos una localidad."); return; }
     const payload = { nombre: editandoU.nombre, rol_id: editandoU.rol_id, localidades: editandoU.localidades, estado_id: editandoU.estado_id };
     if (editandoU.password) payload.password = editandoU.password;
     try {
@@ -211,7 +211,7 @@ export default function VistaAdmin({ localidades, modalidades }) {
                   <Campo label="Usuario (letras, números, _)" required><Input value={nuevoU.user} onChange={(e) => setN("user", e.target.value)} placeholder="ej: j_caacupe" /></Campo>
                   <Campo label="Nombre" required><Input value={nuevoU.nombre} onChange={(e) => setN("nombre", e.target.value)} placeholder="Nombre" /></Campo>
                   <Campo label="Contraseña" required><Input type="password" value={nuevoU.password} onChange={(e) => setN("password", e.target.value)} placeholder="Mín. 6 caracteres" /></Campo>
-                  <Campo label="Rol" required><Select value={nuevoU.rol_id} onChange={(e) => { const rid = Number(e.target.value); setN("rol_id", rid); if (![1, 2, 3, 4, 5, 7].includes(rid)) setN("localidades", []); else if ([1, 3, 5].includes(rid)) setN("localidades", localidades.map(l => l.id)); else if ([2, 7].includes(rid)) setN("localidades", localidades.slice(0, 1).map(l => l.id)); }}>{roles.map((r) => <option key={r.id} value={r.id}>{r.nombre}</option>)}</Select></Campo>
+                  <Campo label="Rol" required><Select value={nuevoU.rol_id} onChange={(e) => { const rid = Number(e.target.value); setN("rol_id", rid); if (![1, 2, 3, 4, 5, 7].includes(rid)) setN("localidades", []); else if ([1, 3, 5].includes(rid)) setN("localidades", localidades.map(l => l.id)); else if ([2, 7].includes(rid)) setN("localidades", localidades.slice(0, 1).map(l => l.id)); else if (rid === 4) setN("localidades", []); }}>{roles.map((r) => <option key={r.id} value={r.id}>{r.nombre}</option>)}</Select></Campo>
                   {[1, 2, 3, 4, 5, 7].includes(nuevoU.rol_id) && (
                     <Campo label={[4, 7].includes(nuevoU.rol_id) ? "Localidad" : "Localidades"}>
                       <div style={{ display: "flex", flexWrap: "wrap", gap: 6, padding: 8, border: `1px solid ${C.grisBorde}`, borderRadius: 10, background: C.blanco }}>
@@ -318,8 +318,8 @@ export default function VistaAdmin({ localidades, modalidades }) {
         <div>
           {loadingMod ? <Loading /> : <>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>Modalidades ({modalidadesAdmin.length})</h3>
-              {!editandoMod && <button onClick={() => setShowNewMod(!showNewMod)} style={{ padding: "9px 18px", background: C.azul, color: C.blanco, border: "none", borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: "pointer" }}>+ Nueva modalidad</button>}
+              <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>Estrategias ({modalidadesAdmin.length})</h3>
+              {!editandoMod && <button onClick={() => setShowNewMod(!showNewMod)} style={{ padding: "9px 18px", background: C.azul, color: C.blanco, border: "none", borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: "pointer" }}>+ Nueva Estrategia</button>}
             </div>
 
             {showNewMod && (

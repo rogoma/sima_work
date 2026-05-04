@@ -31,7 +31,7 @@ export default function LoginScreen({ onLogin }) {
         <div style={{ textAlign: "center", marginBottom: 32 }}>
           <img src={logoSrc} alt="Logo Senasa" style={{ height: 120, objectFit: "contain" }} />
           <h1 style={{ fontSize: 22, fontWeight: 900, color: C.azul, marginTop: 16, letterSpacing: "-0.03em" }}>SIMA</h1>
-          <p style={{ fontSize: 13, color: C.grisTexto, marginTop: 4, lineHeight: 1.5 }}>Sistema de Monitoreo Social<br />de Alcantarillado Sanitario</p>
+          <p style={{ fontSize: 13, color: C.grisTexto, marginTop: 4, lineHeight: 1.5 }}>Sistema de Monitoreo <br />de Alcantarillado</p>
         </div>
         <Campo label="Usuario">
           <Input value={user} onChange={(e) => { setUser(e.target.value); setError(""); }} placeholder="Ej: coord1" />

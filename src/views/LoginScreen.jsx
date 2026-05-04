@@ -30,7 +30,7 @@ export default function LoginScreen({ onLogin }) {
       <div className="fade-in" style={{ background: "rgba(255,255,255,0.97)", borderRadius: 20, padding: "48px 40px", maxWidth: 420, width: "100%", boxShadow: "0 32px 80px rgba(0,0,0,0.3)", backdropFilter: "blur(20px)", position: "relative", zIndex: 1 }}>
         <div style={{ textAlign: "center", marginBottom: 32 }}>
           <img src={logoSrc} alt="Logo Senasa" style={{ height: 120, objectFit: "contain" }} />
-          <h1 style={{ fontSize: 22, fontWeight: 900, color: C.azul, marginTop: 16, letterSpacing: "-0.03em" }}>SIMA_WORK</h1>
+          <h1 style={{ fontSize: 22, fontWeight: 900, color: C.azul, marginTop: 16, letterSpacing: "-0.03em" }}>SIMA</h1>
           <p style={{ fontSize: 13, color: C.grisTexto, marginTop: 4, lineHeight: 1.5 }}>Sistema de Monitoreo Social<br />de Alcantarillado Sanitario</p>
         </div>
         <Campo label="Usuario">

@@ -135,7 +135,7 @@ export default function App() {
       case "dashboard":
         return <VistaDashboard usuario={usuario} localidades={localidades} registros={registros} setVista={handleSetVista} setLocalidadSeleccionada={setLocalidadSel} />;
       case "localidad":
-        return <VistaLocalidad localidadId={localidadSel} registros={registros} usuario={usuario} setVista={handleSetVista} localidades={localidades} />;
+        return <VistaLocalidad localidadId={localidadSel} registros={registros} usuario={usuario} setVista={handleSetVista} localidades={localidades} modalidades={modalidades} onGuardarEdicion={() => { addToast("⏳ Reenviado", "Registro corregido.", "✅", C.azul); cargarDatos(); }} />;
       case "registros":
         return <VistaRegistros registros={registros} usuario={usuario} onReabrir={handleReabrir} localidades={localidades} modalidades={modalidades} />;
       case "nuevo":

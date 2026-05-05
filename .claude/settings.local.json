@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Proyecto\\\\sima_work\\\\src\\\\views\" -Filter \"*Registro*\" -Recurse)"
     ]
   }
 }

@@ -4,12 +4,14 @@ import { fetchLocalidad } from "../services/api";
 import { pct } from "../services/helpers";
 import { StatCard, ProgressBar, Loading } from "../components/DataDisplay";
 import TablaRegistros from "../components/TablaRegistros";
+import FormNuevoRegistro from "./FormNuevoRegistro";
 
 const fmt = n => String(Math.round(Number(n))).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 
-export default function VistaLocalidad({ localidadId, registros, usuario, setVista, localidades }) {
+export default function VistaLocalidad({ localidadId, registros, usuario, setVista, localidades, modalidades = [], onGuardarEdicion }) {
   const [locData, setLocData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [editandoReg, setEditandoReg] = useState(null);
 
   useEffect(() => {
     setLoading(true);
@@ -18,6 +20,20 @@ export default function VistaLocalidad({ localidadId, registros, usuario, setVis
 
   if (loading) return <Loading text="Cargando localidad..." />;
   if (!locData) return <div style={{ padding: 40, textAlign: "center", color: C.grisTexto }}>Localidad no encontrada.</div>;
+
+  if (editandoReg) {
+    return (
+      <FormNuevoRegistro
+        usuario={usuario}
+        registros={registros}
+        onGuardar={() => { setEditandoReg(null); if (onGuardarEdicion) onGuardarEdicion(); }}
+        onCancel={() => setEditandoReg(null)}
+        registroEditar={editandoReg}
+        localidades={localidades}
+        modalidades={modalidades}
+      />
+    );
+  }
 
   const adeq = locData.adecuaciones_total || 0;
   const proyecciones = locData.proyecciones_icaro || [];
@@ -74,7 +90,7 @@ export default function VistaLocalidad({ localidadId, registros, usuario, setVis
         <div style={{ padding: "16px 20px", borderBottom: `1px solid ${C.grisMedio}` }}>
           <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>Registros de {locData.nombre}</h3>
         </div>
-        <TablaRegistros registros={locRegs} usuario={usuario} compact localidades={localidades} />
+        <TablaRegistros registros={locRegs} usuario={usuario} compact localidades={localidades} onEditar={setEditandoReg} />
       </div>
     </div>
   );

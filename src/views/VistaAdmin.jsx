@@ -158,7 +158,7 @@ export default function VistaAdmin({ localidades, modalidades }) {
     // Tabla
     const filas = usuarios.map((u) => [
       u.nombre || "—",
-      u.user || "—",
+      u.user ? fmt(u.user) : "—",
       getRolNombre(u),
       u.localidades?.length ? u.localidades.map((id) => getLocNombre(id)).join(", ") : "Todas",
       ESTADOS.find((e) => e.id === u.estado_id)?.nombre || "Activo",
@@ -166,7 +166,7 @@ export default function VistaAdmin({ localidades, modalidades }) {
 
     autoTable(doc, {
       startY: 35,
-      head: [["Usuario", "Login", "Rol", "Localidades", "Estado"]],
+      head: [["Nombre", "Usuario", "Rol", "Localidades", "Estado"]],
       body: filas,
       headStyles: { fillColor: [18, 85, 161], fontSize: 9, fontStyle: "bold", textColor: 255 },
       bodyStyles: { fontSize: 9, textColor: 30 },
@@ -208,8 +208,8 @@ export default function VistaAdmin({ localidades, modalidades }) {
               <div className="fade-in" style={{ background: C.azulSuave, borderRadius: 14, padding: 20, marginBottom: 20, border: `1px solid ${C.grisMedio}` }}>
                 <h4 style={{ margin: "0 0 14px" }}>Nuevo usuario</h4>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                  <Campo label="Usuario (letras, números, _)" required><Input value={nuevoU.user} onChange={(e) => setN("user", e.target.value)} placeholder="ej: j_caacupe" /></Campo>
-                  <Campo label="Nombre" required><Input value={nuevoU.nombre} onChange={(e) => setN("nombre", e.target.value)} placeholder="Nombre" /></Campo>
+                  <Campo label="Usuario (cédula)" required><Input value={nuevoU.user} onChange={(e) => { const digits = e.target.value.replace(/[^0-9]/g, ""); setN("user", digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".")); }} placeholder="ej: 1.155.372" /></Campo>
+                  <Campo label="Nombre y Apellido" required><Input value={nuevoU.nombre} onChange={(e) => setN("nombre", e.target.value)} placeholder="Nombre" /></Campo>
                   <Campo label="Contraseña" required><Input type="password" value={nuevoU.password} onChange={(e) => setN("password", e.target.value)} placeholder="Mín. 6 caracteres" /></Campo>
                   <Campo label="Rol" required><Select value={nuevoU.rol_id} onChange={(e) => { const rid = Number(e.target.value); setN("rol_id", rid); if (![1, 2, 3, 4, 5, 7].includes(rid)) setN("localidades", []); else if ([1, 3, 5].includes(rid)) setN("localidades", localidades.map(l => l.id)); else if ([2, 7].includes(rid)) setN("localidades", localidades.slice(0, 1).map(l => l.id)); else if (rid === 4) setN("localidades", []); }}>{roles.map((r) => <option key={r.id} value={r.id}>{r.nombre}</option>)}</Select></Campo>
                   {[1, 2, 3, 4, 5, 7].includes(nuevoU.rol_id) && (
@@ -242,7 +242,7 @@ export default function VistaAdmin({ localidades, modalidades }) {
             {editandoU && (() => {
               return (
                 <div className="fade-in" style={{ background: "#FFF9E6", borderRadius: 14, padding: 20, marginBottom: 20, border: `1px solid #F0D070` }}>
-                  <h4 style={{ margin: "0 0 14px" }}>Editar usuario: <span style={{ color: C.azul }}>{editandoU.user}</span></h4>
+                  <h4 style={{ margin: "0 0 14px" }}>Editar usuario: <span style={{ color: C.azul }}>{fmt(editandoU.user)}</span></h4>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                     <Campo label="Nombre" required><Input value={editandoU.nombre} onChange={(e) => setE("nombre", e.target.value)} placeholder="Nombre" /></Campo>
                     <Campo label="Nueva contraseña"><Input type="password" value={editandoU.password} onChange={(e) => setE("password", e.target.value)} placeholder="Dejar en blanco para no cambiar" /></Campo>
@@ -278,11 +278,11 @@ export default function VistaAdmin({ localidades, modalidades }) {
             })()}
             <div style={{ background: C.blanco, borderRadius: 14, border: `1px solid ${C.grisMedio}`, overflow: "hidden" }}>
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-                <thead><tr style={{ background: C.gris }}>{["Usuario", "Login", "Rol", "Localidades", "Estado", ""].map((h) => <th key={h} style={{ padding: "10px 14px", textAlign: "left", fontWeight: 700, color: C.grisTexto, fontSize: 12, borderBottom: `1px solid ${C.grisMedio}` }}>{h}</th>)}</tr></thead>
+                <thead><tr style={{ background: C.gris }}>{["Nombre", "Usuario", "Rol", "Localidades", "Estado", ""].map((h) => <th key={h} style={{ padding: "10px 14px", textAlign: "left", fontWeight: 700, color: C.grisTexto, fontSize: 12, borderBottom: `1px solid ${C.grisMedio}` }}>{h}</th>)}</tr></thead>
                 <tbody>{usuarios.map((u, i) => (
                   <tr key={u.id} style={{ backgroundColor: i % 2 === 0 ? C.blanco : C.gris, borderBottom: `1px solid ${C.grisMedio}` }}>
                     <td style={{ padding: "12px 14px", fontWeight: 700 }}>{u.nombre}</td>
-                    <td style={{ padding: "12px 14px", fontFamily: "monospace", fontSize: 12, color: C.grisTexto }}>{u.user || "—"}</td>
+                    <td style={{ padding: "12px 14px", fontFamily: "monospace", fontSize: 12, color: C.grisTexto }}>{u.user ? fmt(u.user) : "—"}</td>
                     <td style={{ padding: "12px 14px" }}><RolBadge rol={getRolNombre(u)} /></td>
                     <td style={{ padding: "12px 14px", fontSize: 12, color: C.grisTexto }}>{u.localidades ? u.localidades.map((id) => getLocNombre(id)).join(", ") : "Todas"}</td>
                     <td style={{ padding: "12px 14px" }}>{(() => { const est = ESTADOS.find((e) => e.id === u.estado_id) || ESTADOS[0]; return <span style={{ padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 700, background: est.bg, color: est.color }}>{est.nombre}</span>; })()}</td>

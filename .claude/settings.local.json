@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(npm install *)",
-      "Bash(Get-ChildItem -Path \"c:\\\\Proyecto\\\\sima_work\\\\src\\\\views\" -Filter \"*Registro*\" -Recurse)"
+      "Bash(Get-ChildItem -Path \"c:\\\\Proyecto\\\\sima_work\\\\src\\\\views\" -Filter \"*Registro*\" -Recurse)",
+      "Bash(Get-Content \"c:\\\\Proyecto\\\\sima_work\\\\src\\\\components\\\\TablaRegistros.jsx\")",
+      "Bash(Select-String \"onEditarCarga|onEditar|onReabrir|export default\")"
     ]
   }
 }

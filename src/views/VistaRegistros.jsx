@@ -43,17 +43,21 @@ export default function VistaRegistros({ registros, usuario, onReabrir, localida
 
   const [filtros, setFiltros] = useState({
     localidad: locInicialId,
-    tipo: "", estado: "", busqueda: "",
+    tipo: "", estado: "", busqueda: "", fecha_ejec: "",
   });
   const setF = (k, v) => setFiltros((f) => ({ ...f, [k]: v }));
 
   const limpiarFiltros = () =>
-    setFiltros({ localidad: locInicialId, tipo: "", estado: "", busqueda: "" });
+    setFiltros({ localidad: locInicialId, tipo: "", estado: "", busqueda: "", fecha_ejec: "" });
 
   let regs = registros.filter((r) => {
     if (filtros.localidad && String(r.localidad_id) !== String(filtros.localidad)) return false;
     if (filtros.tipo && r.tipo !== filtros.tipo) return false;
     if (filtros.estado && r.estado !== filtros.estado) return false;
+    if (filtros.fecha_ejec) {
+      const fe = r.fecha_ejec ? r.fecha_ejec.split("T")[0] : "";
+      if (fe !== filtros.fecha_ejec) return false;
+    }
     if (filtros.busqueda) {
       const b = filtros.busqueda.toLowerCase();
       if (
@@ -114,7 +118,7 @@ export default function VistaRegistros({ registros, usuario, onReabrir, localida
         <div style={{ flex: 1, minWidth: 120 }}>
           <label style={{ fontSize: 12, fontWeight: 600, color: C.grisTexto, display: "block", marginBottom: 5 }}>Tipo</label>
           <Select value={filtros.tipo} onChange={(e) => setF("tipo", e.target.value)}>
-            <option value="">Todos</option>
+            <option value=""></option>
             <option value="conectado">Conectado</option>
             <option value="adecuacion">Adecuación</option>
           </Select>
@@ -123,11 +127,16 @@ export default function VistaRegistros({ registros, usuario, onReabrir, localida
         <div style={{ flex: 1, minWidth: 120 }}>
           <label style={{ fontSize: 12, fontWeight: 600, color: C.grisTexto, display: "block", marginBottom: 5 }}>Estado</label>
           <Select value={filtros.estado} onChange={(e) => setF("estado", e.target.value)}>
-            <option value="">Todos</option>
+            <option value=""></option>
             <option value="pendiente">⏳ Pendiente</option>
             <option value="validado">✅ Validado</option>
             <option value="rechazado">❌ Rechazado</option>
           </Select>
+        </div>
+
+        <div style={{ flex: 1, minWidth: 140 }}>
+          <label style={{ fontSize: 12, fontWeight: 600, color: C.grisTexto, display: "block", marginBottom: 5 }}>Fecha Ejec.</label>
+          <Input type="date" value={filtros.fecha_ejec} onChange={(e) => setF("fecha_ejec", e.target.value)} />
         </div>
 
         <button onClick={limpiarFiltros} style={{ padding: "10px 18px", background: C.gris, border: `1px solid ${C.grisMedio}`, borderRadius: 10, cursor: "pointer", fontSize: 13, color: C.grisTexto, fontWeight: 600 }}>

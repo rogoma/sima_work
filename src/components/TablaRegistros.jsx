@@ -46,7 +46,7 @@ export function ModalDetalleRegistro({ registro: r, onClose, localidades = [] })
           ["CI", fullReg.ci],
           ["Celular", fullReg.celular || "-"],
           ["Manzana / Lote", `${fullReg.manzana} / ${fullReg.lote}`],
-          ["Modalidad", <>{fullReg.modalidad_cat && <CatBadge cat={fullReg.modalidad_cat} />} <span style={{ fontSize: 12, marginLeft: 4 }}>{fullReg.modalidad_nombre || fullReg.modalidad_id}</span></>],
+          ["Estrategia", <>{fullReg.modalidad_cat && <CatBadge cat={fullReg.modalidad_cat} />} <span style={{ fontSize: 12, marginLeft: 4 }}>{fullReg.modalidad_nombre || fullReg.modalidad_id}</span></>],
           ["Estado", <Badge estado={fullReg.estado} />],
           ["Fecha Ejecución", fmt(fullReg.fecha_ejec)],
           ["Fecha Carga", fmtDT(fullReg.fecha_carga)],
@@ -156,7 +156,7 @@ export default function TablaRegistros({ registros, usuario, compact = false, on
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
           <thead>
             <tr style={{ backgroundColor: C.gris }}>
-              {["ID", "Titular", "Localidad", "Tipo", "Modalidad", "Fecha Ejec.", "Estado", "Evidencia", "Acciones"]
+              {["ID", "Titular", "Localidad", "Tipo", "Estrategia", "Fecha Ejec.", "Estado", "Evidencia", "Acciones"]
                 .filter((_, i) => !compact || i !== 2)
                 .map((h) => (
                   <th key={h} style={{ padding: "10px 14px", textAlign: "left", fontWeight: 700, color: C.grisTexto, fontSize: 12, borderBottom: `1px solid ${C.grisMedio}`, whiteSpace: "nowrap" }}>{h}</th>

@@ -43,20 +43,31 @@ export default function VistaRegistros({ registros, usuario, onReabrir, localida
 
   const [filtros, setFiltros] = useState({
     localidad: locInicialId,
-    tipo: "", estado: "", busqueda: "", fecha_ejec: "",
+    estado: "", busqueda: "", fecha_desde: "", fecha_hasta: "",
   });
-  const setF = (k, v) => setFiltros((f) => ({ ...f, [k]: v }));
+  const [fechaAplicada, setFechaAplicada] = useState({ desde: "", hasta: "" });
 
-  const limpiarFiltros = () =>
-    setFiltros({ localidad: locInicialId, tipo: "", estado: "", busqueda: "", fecha_ejec: "" });
+  const setF = (k, v) => setFiltros((f) => {
+    const next = { ...f, [k]: v };
+    if (k === "fecha_desde" && next.fecha_hasta && v > next.fecha_hasta) next.fecha_hasta = v;
+    if (k === "fecha_hasta" && next.fecha_desde && v < next.fecha_desde) next.fecha_desde = v;
+    return next;
+  });
+
+  const buscarPorFecha = () => setFechaAplicada({ desde: filtros.fecha_desde, hasta: filtros.fecha_hasta });
+
+  const limpiarFiltros = () => {
+    setFiltros({ localidad: locInicialId, estado: "", busqueda: "", fecha_desde: "", fecha_hasta: "" });
+    setFechaAplicada({ desde: "", hasta: "" });
+  };
 
   let regs = registros.filter((r) => {
     if (filtros.localidad && String(r.localidad_id) !== String(filtros.localidad)) return false;
-    if (filtros.tipo && r.tipo !== filtros.tipo) return false;
     if (filtros.estado && r.estado !== filtros.estado) return false;
-    if (filtros.fecha_ejec) {
+    if (fechaAplicada.desde || fechaAplicada.hasta) {
       const fe = r.fecha_ejec ? r.fecha_ejec.split("T")[0] : "";
-      if (fe !== filtros.fecha_ejec) return false;
+      if (fechaAplicada.desde && fe < fechaAplicada.desde) return false;
+      if (fechaAplicada.hasta && fe > fechaAplicada.hasta) return false;
     }
     if (filtros.busqueda) {
       const b = filtros.busqueda.toLowerCase();
@@ -116,15 +127,6 @@ export default function VistaRegistros({ registros, usuario, onReabrir, localida
         )}
 
         <div style={{ flex: 1, minWidth: 120 }}>
-          <label style={{ fontSize: 12, fontWeight: 600, color: C.grisTexto, display: "block", marginBottom: 5 }}>Tipo</label>
-          <Select value={filtros.tipo} onChange={(e) => setF("tipo", e.target.value)}>
-            <option value=""></option>
-            <option value="conectado">Conectado</option>
-            <option value="adecuacion">Adecuación</option>
-          </Select>
-        </div>
-
-        <div style={{ flex: 1, minWidth: 120 }}>
           <label style={{ fontSize: 12, fontWeight: 600, color: C.grisTexto, display: "block", marginBottom: 5 }}>Estado</label>
           <Select value={filtros.estado} onChange={(e) => setF("estado", e.target.value)}>
             <option value=""></option>
@@ -135,9 +137,17 @@ export default function VistaRegistros({ registros, usuario, onReabrir, localida
         </div>
 
         <div style={{ flex: 1, minWidth: 140 }}>
-          <label style={{ fontSize: 12, fontWeight: 600, color: C.grisTexto, display: "block", marginBottom: 5 }}>Fecha Ejec.</label>
-          <Input type="date" value={filtros.fecha_ejec} onChange={(e) => setF("fecha_ejec", e.target.value)} />
+          <label style={{ fontSize: 12, fontWeight: 600, color: C.grisTexto, display: "block", marginBottom: 5 }}>Fecha Ejec. Desde</label>
+          <Input type="date" value={filtros.fecha_desde} max={filtros.fecha_hasta || undefined} onChange={(e) => setF("fecha_desde", e.target.value)} />
         </div>
+        <div style={{ flex: 1, minWidth: 140 }}>
+          <label style={{ fontSize: 12, fontWeight: 600, color: C.grisTexto, display: "block", marginBottom: 5 }}>Fecha Ejec. Hasta</label>
+          <Input type="date" value={filtros.fecha_hasta} min={filtros.fecha_desde || undefined} onChange={(e) => setF("fecha_hasta", e.target.value)} />
+        </div>
+
+        <button onClick={buscarPorFecha} style={{ padding: "10px 20px", background: C.azul, color: C.blanco, border: "none", borderRadius: 10, cursor: "pointer", fontSize: 13, fontWeight: 700 }}>
+          Buscar
+        </button>
 
         <button onClick={limpiarFiltros} style={{ padding: "10px 18px", background: C.gris, border: `1px solid ${C.grisMedio}`, borderRadius: 10, cursor: "pointer", fontSize: 13, color: C.grisTexto, fontWeight: 600 }}>
           Limpiar

@@ -83,7 +83,7 @@ export function ModalDetalleRegistro({ registro: r, onClose, localidades = [] })
 }
 
 // ─── TABLA REGISTROS ─────────────────────────────────────────────────────────
-export default function TablaRegistros({ registros, usuario, compact = false, onReabrir, onEditar, localidades = [] }) {
+export default function TablaRegistros({ registros, usuario, compact = false, onReabrir, onEditar, onEditarCarga, localidades = [] }) {
   const [detalle, setDetalle] = useState(null);
   const isMobile = useMobile();
   const locNombre = (id) => localidades.find((l) => Number(l.id) === Number(id))?.nombre || id;
@@ -133,6 +133,11 @@ export default function TablaRegistros({ registros, usuario, compact = false, on
                 {r.estado === "rechazado" && r.cargado_por === usuario.id && onReabrir && (
                   <button onClick={() => onReabrir(r)} style={{ flex: 1, padding: "8px 0", background: "#FEF3C7", color: "#B45309", border: "none", borderRadius: 8, fontSize: 12, cursor: "pointer", fontWeight: 600 }}>
                     Corregir
+                  </button>
+                )}
+                {r.estado === "validado" && onEditarCarga && (
+                  <button onClick={() => onEditarCarga(r)} style={{ flex: 1, padding: "8px 0", background: "#FEF3C7", color: "#92400E", border: "none", borderRadius: 8, fontSize: 12, cursor: "pointer", fontWeight: 600 }}>
+                    Editar Carga
                   </button>
                 )}
               </div>
@@ -195,6 +200,11 @@ export default function TablaRegistros({ registros, usuario, compact = false, on
                     {r.estado === "rechazado" && r.cargado_por === usuario.id && onReabrir && (
                       <button onClick={() => onReabrir(r)} style={{ padding: "5px 12px", background: "#FEF3C7", color: "#B45309", border: "none", borderRadius: 8, fontSize: 11, cursor: "pointer", fontWeight: 600 }}>
                         Corregir
+                      </button>
+                    )}
+                    {r.estado === "validado" && onEditarCarga && (
+                      <button onClick={() => onEditarCarga(r)} style={{ padding: "5px 12px", background: "#FEF3C7", color: "#92400E", border: "none", borderRadius: 8, fontSize: 11, cursor: "pointer", fontWeight: 600 }}>
+                        Editar Carga
                       </button>
                     )}
                   </div>

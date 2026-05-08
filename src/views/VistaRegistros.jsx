@@ -149,7 +149,13 @@ export default function VistaRegistros({ registros, usuario, onReabrir, localida
       </div>
 
       <div style={{ background: C.blanco, borderRadius: 14, border: `1px solid ${C.grisMedio}`, overflow: "hidden" }}>
-        <TablaRegistros registros={regs} usuario={usuario} onReabrir={onReabrir} localidades={localidades} />
+        <TablaRegistros
+          registros={regs}
+          usuario={usuario}
+          onReabrir={onReabrir}
+          onEditarCarga={[1, 2, 5].includes(rolId) ? onReabrir : undefined}
+          localidades={localidades}
+        />
       </div>
     </div>
   );

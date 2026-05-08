@@ -40,11 +40,6 @@ export default function VistaDashboard({ usuario, localidades, registros, setVis
             ? `📊 ${localidadAsignada?.nombre || "Mi Localidad"}`
             : "📊 Tablero General"}
         </h1>
-        {/* <p style={{ color: C.grisTexto, marginTop: 4, fontSize: 13 }}>
-          {rolId === 4
-            ? "Dashboard de tu localidad asignada · Datos en tiempo real"
-            : "Resumen del programa · Línea base: agosto 2025 · Datos en tiempo real"}
-        </p> */}
       </div>
 
       {d.pendientes > 0 && (

@@ -242,7 +242,7 @@ export default function VistaAdmin({ localidades, modalidades }) {
             {editandoU && (() => {
               return (
                 <div className="fade-in" style={{ background: "#FFF9E6", borderRadius: 14, padding: 20, marginBottom: 20, border: `1px solid #F0D070` }}>
-                  <h4 style={{ margin: "0 0 14px" }}>Editar usuario: <span style={{ color: C.azul }}>{fmt(editandoU.user)}</span></h4>
+                  <h4 style={{ margin: "0 0 14px" }}>Editar usuarios: <span style={{ color: C.azul }}>{fmt(editandoU.user)}</span></h4>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                     <Campo label="Nombre" required><Input value={editandoU.nombre} onChange={(e) => setE("nombre", e.target.value)} placeholder="Nombre" /></Campo>
                     <Campo label="Nueva contraseña"><Input type="password" value={editandoU.password} onChange={(e) => setE("password", e.target.value)} placeholder="Dejar en blanco para no cambiar" /></Campo>

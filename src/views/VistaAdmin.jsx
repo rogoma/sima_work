@@ -89,7 +89,7 @@ export default function VistaAdmin({ localidades, modalidades }) {
     if (!nuevoU.user || !nuevoU.nombre || !nuevoU.password) return;
     if ([2, 4, 7].includes(nuevoU.rol_id) && !nuevoU.localidades.length) { alert("Este rol requiere seleccionar una localidad."); return; }
     try {
-      const created = await apiCrearUsuario(nuevoU);
+      const created = await apiCrearUsuario({ ...nuevoU, user: nuevoU.user.replace(/\./g, "") });
       setUsuarios((u) => [...u, created]);
       setShowNew(false); setNuevoU({ user: "", nombre: "", rol_id: 4, localidades: [], password: "" });
     } catch (e) { alert(e.error || "Error al crear usuario"); }

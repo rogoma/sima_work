@@ -8,6 +8,7 @@ export default function Sidebar({ usuario, vista, setVista, pendientes, onLogout
   const [adminExpanded, setAdminExpanded] = useState(
     () => vista === "admin" || vista === "roles"
   );
+  const [docsExpanded, setDocsExpanded] = useState(false);
   const [confirmarSalida, setConfirmarSalida] = useState(false);
 
   const esCoordinador = [1, 5].includes(usuario.rol_id);
@@ -164,6 +165,39 @@ export default function Sidebar({ usuario, vista, setVista, pendientes, onLogout
               )}
             </>
           )}
+          {/* Sección Documentos */}
+          <>
+            <button
+              onClick={() => setDocsExpanded((v) => !v)}
+              style={{
+                ...navItemStyle(false),
+                background: "none",
+                borderLeft: "3px solid transparent",
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.07)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = "none"; }}
+            >
+              <span style={{ fontSize: 16 }}>📁</span>
+              <span style={{ flex: 1 }}>Documentos</span>
+              <span style={{ fontSize: 10, opacity: 0.7, transition: "transform 0.2s", display: "inline-block", transform: docsExpanded ? "rotate(90deg)" : "rotate(0deg)" }}>
+                ▶
+              </span>
+            </button>
+            {docsExpanded && (
+              <div style={{ overflow: "hidden" }}>
+                <a
+                  href="/documents/Manual_Usuario_SIMA.pdf"
+                  download="Manual_Usuario_SIMA.pdf"
+                  style={{ ...subItemStyle(false), display: "flex", textDecoration: "none" }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.07)"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "none"; }}
+                >
+                  <span style={{ fontSize: 14 }}>📄</span>
+                  <span>Manual de Usuario</span>
+                </a>
+              </div>
+            )}
+          </>
         </nav>
         <div style={{ padding: "14px 18px", borderTop: "1px solid rgba(255,255,255,0.1)" }}>
           <button

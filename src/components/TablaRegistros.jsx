@@ -156,7 +156,7 @@ export default function TablaRegistros({ registros, usuario, compact = false, on
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
           <thead>
             <tr style={{ backgroundColor: C.gris }}>
-              {["ID", "Titular", "Localidad", "Tipo", "Estrategia", "Fecha Ejec.", "Estado", "Evidencia", "Acciones"]
+              {["#", "Titular", "Localidad", "Tipo", "Estrategia", "Fecha Ejec.", "Estado", "Evidencia", "Acciones"]
                 .filter((_, i) => !compact || i !== 2)
                 .map((h) => (
                   <th key={h} style={{ padding: "10px 14px", textAlign: "left", fontWeight: 700, color: C.grisTexto, fontSize: 12, borderBottom: `1px solid ${C.grisMedio}`, whiteSpace: "nowrap" }}>{h}</th>
@@ -166,7 +166,7 @@ export default function TablaRegistros({ registros, usuario, compact = false, on
           <tbody>
             {registros.map((r, i) => (
               <tr key={r.id} style={{ backgroundColor: i % 2 === 0 ? C.blanco : C.gris, borderBottom: `1px solid ${C.grisMedio}` }}>
-                <td style={{ padding: "11px 14px", fontFamily: "monospace", fontSize: 12, color: C.azul, fontWeight: 700 }}>{r.id}</td>
+                <td style={{ padding: "11px 14px", fontFamily: "monospace", fontSize: 12, color: C.azul, fontWeight: 700 }}>{i + 1}</td>
                 <td style={{ padding: "11px 14px", fontWeight: 600, color: C.texto }}>
                   {r.titular}
                   <div style={{ fontSize: 11, color: C.grisTexto }}>CIN°: {fmtNum(r.ci)}</div>

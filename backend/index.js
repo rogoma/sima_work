@@ -26,6 +26,9 @@ app.use(express.urlencoded({ extended: true }));
 // ─── ARCHIVOS ESTÁTICOS (evidencias subidas) ───────────────────────────────────
 app.use("/uploads", express.static(path.resolve(process.env.UPLOAD_DIR || "./uploads")));
 
+// ─── DOCUMENTOS (manuales, etc.) ──────────────────────────────────────────────
+app.use("/documents", express.static(path.resolve(__dirname, "./documents")));
+
 // ─── RUTAS ─────────────────────────────────────────────────────────────────────
 app.use("/api/auth",        authRoutes);
 app.use("/api/registros",   registrosRoutes);

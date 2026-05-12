@@ -43,6 +43,13 @@ export function logout() {
   localStorage.removeItem("simsas_usuario");
 }
 
+export async function cambiarPassword(actual, nueva) {
+  return apiFetch("/usuarios/me/password", {
+    method: "PUT",
+    body: JSON.stringify({ actual, nueva }),
+  });
+}
+
 export function getUsuarioGuardado() {
   const saved = localStorage.getItem("simsas_usuario");
   return saved ? JSON.parse(saved) : null;

@@ -207,6 +207,31 @@ router.delete("/:id", ...soloCoordinador, async (req, res) => {
   res.json({ mensaje: "Usuario desactivado." });
 });
 
+// ─── PUT /api/usuarios/me/password — cualquier usuario cambia su propia contraseña
+router.put(
+  "/me/password",
+  auth,
+  [
+    body("actual").notEmpty().withMessage("Debe ingresar la contraseña actual."),
+    body("nueva").isLength({ min: 6 }).withMessage("La nueva contraseña debe tener al menos 6 caracteres."),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ error: errors.array()[0].msg });
+
+    const { actual, nueva } = req.body;
+    const { rows } = await pool.query(`SELECT password_hash FROM usuarios WHERE id=$1`, [req.usuario.id]);
+    if (!rows.length) return res.status(404).json({ error: "Usuario no encontrado." });
+
+    const coincide = await bcrypt.compare(actual, rows[0].password_hash);
+    if (!coincide) return res.status(400).json({ error: "La contraseña actual es incorrecta." });
+
+    const hash = await bcrypt.hash(nueva, 10);
+    await pool.query(`UPDATE usuarios SET password_hash=$1, updated_at=NOW() WHERE id=$2`, [hash, req.usuario.id]);
+    res.json({ mensaje: "Contraseña actualizada correctamente." });
+  }
+);
+
 // ─── GET /api/usuarios/modalidades/lista ──────────────────────────────────────
 router.get("/modalidades/lista", auth, async (req, res) => {
   const { rows } = await pool.query(

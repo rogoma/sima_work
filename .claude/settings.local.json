@@ -5,7 +5,9 @@
       "Bash(Get-ChildItem -Path \"c:\\\\Proyecto\\\\sima_work\\\\src\\\\views\" -Filter \"*Registro*\" -Recurse)",
       "Bash(Get-Content \"c:\\\\Proyecto\\\\sima_work\\\\src\\\\components\\\\TablaRegistros.jsx\")",
       "Bash(Select-String \"onEditarCarga|onEditar|onReabrir|export default\")",
-      "Bash(powershell -command \"\\(Get-Item 'f:\\\\Proyecto\\\\sima_work\\\\backend\\\\documents\\\\Manual_Usuario_SIMA.pdf'\\).length\")"
+      "Bash(powershell -command \"\\(Get-Item 'f:\\\\Proyecto\\\\sima_work\\\\backend\\\\documents\\\\Manual_Usuario_SIMA.pdf'\\).length\")",
+      "Bash(Get-ChildItem -Path \"f:\\\\Proyecto\\\\sima_work\" -Recurse -Depth 2)",
+      "Bash(Select-Object -First 100)"
     ]
   }
 }

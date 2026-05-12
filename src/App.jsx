@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { C } from "./styles/colors";
-import { getUsuarioGuardado, logout, fetchLocalidades, fetchRegistros, fetchModalidades, validarRegistro, rechazarRegistro } from "./services/api";
+import { getUsuarioGuardado, logout, fetchLocalidades, fetchRegistros, fetchModalidades, validarRegistro, rechazarRegistro, cambiarPassword } from "./services/api";
 
 import Sidebar from "./components/Sidebar";
 import { Toast } from "./components/Overlays";
@@ -35,6 +35,11 @@ export default function App() {
   const [toasts, setToasts] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [modalPassword, setModalPassword] = useState(false);
+  const [pwdForm, setPwdForm] = useState({ actual: "", nueva: "", confirmar: "" });
+  const [pwdError, setPwdError] = useState("");
+  const [pwdLoading, setPwdLoading] = useState(false);
   const isMobile = useMobile();
 
   // ─── Toasts ────────────────────────────────────────────────────────────────
@@ -96,6 +101,28 @@ export default function App() {
     setUsuario(null);
     setVista("dashboard");
     setRegistros([]); setLocalidades([]); setModalidades([]);
+  };
+
+  const abrirModalPassword = () => {
+    setPwdForm({ actual: "", nueva: "", confirmar: "" });
+    setPwdError("");
+    setUserMenuOpen(false);
+    setModalPassword(true);
+  };
+
+  const handleCambiarPassword = async () => {
+    if (pwdForm.nueva !== pwdForm.confirmar) { setPwdError("Las contraseñas nuevas no coinciden."); return; }
+    if (pwdForm.nueva.length < 6) { setPwdError("La nueva contraseña debe tener al menos 6 caracteres."); return; }
+    setPwdLoading(true); setPwdError("");
+    try {
+      await cambiarPassword(pwdForm.actual, pwdForm.nueva);
+      setModalPassword(false);
+      addToast("Contraseña actualizada", "Su contraseña fue cambiada correctamente.", "🔒", C.verde);
+    } catch (e) {
+      setPwdError(e.error || "Error al cambiar la contraseña.");
+    } finally {
+      setPwdLoading(false);
+    }
   };
 
   const handleSetVista = (v) => {
@@ -188,9 +215,36 @@ export default function App() {
                 ⚠️ {pendientesCount}{!isMobile && ` pendiente${pendientesCount !== 1 ? "s" : ""}`}
               </button>
             )}
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <div style={{ width: 34, height: 34, borderRadius: "50%", background: `linear-gradient(135deg,${C.azul},${C.azulMedio})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: C.blanco }}>{usuario.nombre[0]}</div>
-              {!isMobile && <div style={{ fontSize: 12, color: C.grisTexto, fontWeight: 500 }}>{usuario.nombre}</div>}
+            <div style={{ position: "relative" }}>
+              <button
+                onClick={() => setUserMenuOpen((v) => !v)}
+                style={{ display: "flex", alignItems: "center", gap: 8, background: "none", border: "none", cursor: "pointer", padding: "4px 6px", borderRadius: 8, transition: "background 0.15s" }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = C.azulClaro)}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
+              >
+                <div style={{ width: 34, height: 34, borderRadius: "50%", background: `linear-gradient(135deg,${C.azul},${C.azulMedio})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: C.blanco }}>{usuario.nombre[0]}</div>
+                {!isMobile && <div style={{ fontSize: 12, color: C.grisTexto, fontWeight: 500 }}>{usuario.nombre}</div>}
+                <span style={{ fontSize: 10, color: C.grisTexto, opacity: 0.6 }}>▾</span>
+              </button>
+              {userMenuOpen && (
+                <>
+                  <div onClick={() => setUserMenuOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 60 }} />
+                  <div style={{ position: "absolute", right: 0, top: "calc(100% + 6px)", background: C.blanco, border: `1px solid ${C.grisMedio}`, borderRadius: 10, boxShadow: "0 8px 24px rgba(0,0,0,0.12)", minWidth: 180, zIndex: 70, overflow: "hidden" }}>
+                    <div style={{ padding: "10px 14px", borderBottom: `1px solid ${C.grisMedio}` }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: C.texto }}>{usuario.nombre}</div>
+                      <div style={{ fontSize: 11, color: C.grisTexto }}>{usuario.rol}</div>
+                    </div>
+                    <button
+                      onClick={abrirModalPassword}
+                      style={{ width: "100%", padding: "10px 14px", background: "none", border: "none", cursor: "pointer", fontSize: 13, color: C.texto, textAlign: "left", display: "flex", alignItems: "center", gap: 8, transition: "background 0.15s" }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = C.gris)}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
+                    >
+                      🔒 Cambiar contraseña
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -202,6 +256,56 @@ export default function App() {
       </div>
 
       <Toast notifs={toasts} onDismiss={dismissToast} />
+
+      {/* Modal cambiar contraseña */}
+      {modalPassword && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.50)", backdropFilter: "blur(3px)" }}>
+          <div style={{ background: C.blanco, borderRadius: 16, padding: "32px 28px", width: 340, boxShadow: "0 20px 60px rgba(0,0,0,0.25)" }}>
+            <div style={{ fontSize: 22, textAlign: "center", marginBottom: 6 }}>🔒</div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: C.texto, textAlign: "center", marginBottom: 20 }}>Cambiar contraseña</div>
+
+            {[
+              { label: "Contraseña actual", key: "actual" },
+              { label: "Nueva contraseña", key: "nueva" },
+              { label: "Confirmar nueva contraseña", key: "confirmar" },
+            ].map(({ label, key }) => (
+              <div key={key} style={{ marginBottom: 14 }}>
+                <label style={{ fontSize: 12, fontWeight: 600, color: C.grisTexto, display: "block", marginBottom: 5 }}>{label}</label>
+                <input
+                  type="password"
+                  value={pwdForm[key]}
+                  onChange={(e) => setPwdForm((f) => ({ ...f, [key]: e.target.value }))}
+                  onKeyDown={(e) => e.key === "Enter" && handleCambiarPassword()}
+                  style={{ width: "100%", padding: "9px 12px", border: `1px solid ${C.grisMedio}`, borderRadius: 8, fontSize: 13, color: C.texto, outline: "none", boxSizing: "border-box" }}
+                />
+              </div>
+            ))}
+
+            {pwdError && (
+              <div style={{ background: "#FEF2F2", border: "1px solid #FCA5A5", borderRadius: 8, padding: "8px 12px", fontSize: 12, color: "#DC2626", marginBottom: 14 }}>
+                {pwdError}
+              </div>
+            )}
+
+            <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
+              <button
+                onClick={() => setModalPassword(false)}
+                disabled={pwdLoading}
+                style={{ flex: 1, padding: "10px", background: "#F3F4F6", border: "none", borderRadius: 10, fontSize: 13, fontWeight: 600, color: "#374151", cursor: "pointer" }}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleCambiarPassword}
+                disabled={pwdLoading}
+                style={{ flex: 1, padding: "10px", background: `linear-gradient(135deg,${C.azul},${C.azulMedio})`, border: "none", borderRadius: 10, fontSize: 13, fontWeight: 700, color: C.blanco, cursor: pwdLoading ? "not-allowed" : "pointer", opacity: pwdLoading ? 0.7 : 1 }}
+              >
+                {pwdLoading ? "Guardando…" : "Guardar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

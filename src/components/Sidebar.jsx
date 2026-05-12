@@ -11,9 +11,11 @@ export default function Sidebar({ usuario, vista, setVista, pendientes, localida
   const [docsExpanded, setDocsExpanded] = useState(false);
 
   const esCoordinador = [1, 5].includes(usuario.rol_id);
+  const verLineaAvance = [1, 3, 5, 6].includes(usuario.rol_id);
 
   const items = [
     { id: "dashboard", icon: "📊", label: "Tablero" },
+    ...(verLineaAvance ? [{ id: "linea", icon: "📈", label: "Línea de Avance" }] : []),
     { id: "registros", icon: "📋", label: "Registros" },
     { id: "nuevo", icon: "➕", label: "Nuevo Registro" },
     ...(esCoordinador ? [{ id: "validacion", icon: "✅", label: "Validación", badge: pendientes }] : []),

@@ -17,6 +17,7 @@ import VistaValidacion from "./views/VistaValidacion";
 import VistaReportes from "./views/VistaReportes";
 import VistaAdmin from "./views/VistaAdmin";
 import VistaRoles from "./views/VistaRoles";
+import VistaLineaAvance from "./views/VistaLineaAvance";
 
 export default function App() {
   const [usuario, setUsuario] = useState(() => getUsuarioGuardado());
@@ -102,6 +103,8 @@ export default function App() {
     setUsuario(null);
     setVista("dashboard");
     setRegistros([]); setLocalidades([]); setModalidades([]);
+    setConfirmarSalida(false);
+    setUserMenuOpen(false);
   };
 
   const abrirModalPassword = () => {
@@ -162,6 +165,8 @@ export default function App() {
     switch (vista) {
       case "dashboard":
         return <VistaDashboard usuario={usuario} localidades={localidades} registros={registros} setVista={handleSetVista} setLocalidadSeleccionada={setLocalidadSel} />;
+      case "linea":
+        return <VistaLineaAvance registros={registros} localidades={localidades} />;
       case "localidad":
         return <VistaLocalidad localidadId={localidadSel} registros={registros} usuario={usuario} setVista={handleSetVista} localidades={localidades} modalidades={modalidades} onGuardarEdicion={() => { addToast("⏳ Reenviado", "Registro corregido.", "✅", C.azul); cargarDatos(); }} />;
       case "registros":

@@ -3,13 +3,12 @@ import { C } from "../styles/colors";
 
 import { useMobile } from "../hooks/useMobile";
 
-export default function Sidebar({ usuario, vista, setVista, pendientes, onLogout, localidades, isOpen, onClose }) {
+export default function Sidebar({ usuario, vista, setVista, pendientes, localidades, isOpen, onClose }) {
   const isMobile = useMobile();
   const [adminExpanded, setAdminExpanded] = useState(
     () => vista === "admin" || vista === "roles"
   );
   const [docsExpanded, setDocsExpanded] = useState(false);
-  const [confirmarSalida, setConfirmarSalida] = useState(false);
 
   const esCoordinador = [1, 5].includes(usuario.rol_id);
 
@@ -199,41 +198,6 @@ export default function Sidebar({ usuario, vista, setVista, pendientes, onLogout
             )}
           </>
         </nav>
-        <div style={{ padding: "14px 18px", borderTop: "1px solid rgba(255,255,255,0.1)" }}>
-          <button
-            onClick={() => setConfirmarSalida(true)}
-            style={{ width: "100%", padding: "10px", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 10, color: "rgba(255,255,255,0.75)", fontSize: 12, cursor: "pointer", fontWeight: 600, transition: "background 0.15s" }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.15)")}
-            onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.08)")}
-          >
-            Cerrar sesión
-          </button>
-        </div>
-
-        {/* ── Confirmación de cierre de sesión ── */}
-        {confirmarSalida && (
-          <div style={{ position: "fixed", inset: 0, zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.55)", backdropFilter: "blur(3px)" }}>
-            <div style={{ background: C.blanco, borderRadius: 16, padding: "32px 28px", width: 300, boxShadow: "0 20px 60px rgba(0,0,0,0.3)", textAlign: "center" }}>
-              <div style={{ fontSize: 36, marginBottom: 12 }}>🚪</div>
-              <div style={{ fontSize: 16, fontWeight: 800, color: "#1a1a2e", marginBottom: 8 }}>¿Cerrar sesión?</div>
-              <div style={{ fontSize: 13, color: "#6b7280", marginBottom: 24, lineHeight: 1.5 }}>¿Está seguro que desea salir del sistema?</div>
-              <div style={{ display: "flex", gap: 10 }}>
-                <button
-                  onClick={() => setConfirmarSalida(false)}
-                  style={{ flex: 1, padding: "10px", background: "#f3f4f6", border: "none", borderRadius: 10, fontSize: 13, fontWeight: 600, color: "#374151", cursor: "pointer" }}
-                >
-                  No
-                </button>
-                <button
-                  onClick={onLogout}
-                  style={{ flex: 1, padding: "10px", background: "linear-gradient(135deg,#dc2626,#b91c1c)", border: "none", borderRadius: 10, fontSize: 13, fontWeight: 700, color: C.blanco, cursor: "pointer" }}
-                >
-                  Sí, salir
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </>
   );

@@ -37,6 +37,7 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [modalPassword, setModalPassword] = useState(false);
+  const [confirmarSalida, setConfirmarSalida] = useState(false);
   const [pwdForm, setPwdForm] = useState({ actual: "", nueva: "", confirmar: "" });
   const [pwdError, setPwdError] = useState("");
   const [pwdLoading, setPwdLoading] = useState(false);
@@ -187,7 +188,6 @@ export default function App() {
         vista={vista}
         setVista={handleSetVista}
         pendientes={pendientesCount}
-        onLogout={handleLogout}
         localidades={localidades}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
@@ -242,6 +242,15 @@ export default function App() {
                     >
                       🔒 Cambiar contraseña
                     </button>
+                    <div style={{ borderTop: `1px solid ${C.grisMedio}` }} />
+                    <button
+                      onClick={() => { setUserMenuOpen(false); setConfirmarSalida(true); }}
+                      style={{ width: "100%", padding: "10px 14px", background: "none", border: "none", cursor: "pointer", fontSize: 13, color: "#DC2626", textAlign: "left", display: "flex", alignItems: "center", gap: 8, transition: "background 0.15s" }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "#FEF2F2")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
+                    >
+                      🚪 Cerrar sesión
+                    </button>
                   </div>
                 </>
               )}
@@ -256,6 +265,31 @@ export default function App() {
       </div>
 
       <Toast notifs={toasts} onDismiss={dismissToast} />
+
+      {/* Modal confirmar cierre de sesión */}
+      {confirmarSalida && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.55)", backdropFilter: "blur(3px)" }}>
+          <div style={{ background: C.blanco, borderRadius: 16, padding: "32px 28px", width: 300, boxShadow: "0 20px 60px rgba(0,0,0,0.3)", textAlign: "center" }}>
+            <div style={{ fontSize: 36, marginBottom: 12 }}>🚪</div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "#1a1a2e", marginBottom: 8 }}>¿Cerrar sesión?</div>
+            <div style={{ fontSize: 13, color: "#6b7280", marginBottom: 24, lineHeight: 1.5 }}>¿Está seguro que desea salir del sistema?</div>
+            <div style={{ display: "flex", gap: 10 }}>
+              <button
+                onClick={() => setConfirmarSalida(false)}
+                style={{ flex: 1, padding: "10px", background: "#F3F4F6", border: "none", borderRadius: 10, fontSize: 13, fontWeight: 600, color: "#374151", cursor: "pointer" }}
+              >
+                No
+              </button>
+              <button
+                onClick={handleLogout}
+                style={{ flex: 1, padding: "10px", background: "linear-gradient(135deg,#dc2626,#b91c1c)", border: "none", borderRadius: 10, fontSize: 13, fontWeight: 700, color: C.blanco, cursor: "pointer" }}
+              >
+                Sí, salir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal cambiar contraseña */}
       {modalPassword && (

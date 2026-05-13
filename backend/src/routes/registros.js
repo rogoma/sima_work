@@ -215,25 +215,25 @@ router.put(
       if (!rows.length) return res.status(404).json({ error: "Registro no encontrado." });
       const reg = rows[0];
 
-      if (reg.estado_id !== 3) {
-        return res.status(400).json({ error: "Solo se pueden corregir registros rechazados." });
-      }
-      if (reg.usuario_id_carga !== req.usuario.id) {
+      const esRolPrivilegiado = [1, 3, 5].includes(req.usuario.rol_id);
+      if (reg.usuario_id_carga !== req.usuario.id && !esRolPrivilegiado) {
         return res.status(403).json({ error: "Solo el usuario que cargó el registro puede corregirlo." });
       }
 
       const { modalidad_id, tipo, titular, ci, celular, manzana, lote, fecha_ejec, evidencia_url, evidencia_url_2, evidencia_url_3, observaciones } = req.body;
       const tipoId = tipo ? TIPO_IDS[tipo] : reg.tipo_registro_id;
       const ahora  = new Date().toISOString();
+      // Si era rechazado lo reenvía a validación; si no, mantiene el estado actual
+      const nuevoEstado = reg.estado_id === 3 ? 5 : reg.estado_id;
 
       await client.query(
-        `UPDATE registros SET modalidad_id=$1, tipo_registro_id=$2, titular=$3, ci=$4, celular=$5, manzana=$6, lote=$7, fecha_ejec=$8, evidencia_url=$9, evidencia_url_2=$10, evidencia_url_3=$11, observaciones=$12, estado_id=5, updated_at=$13 WHERE id=$14`,
-        [Number(modalidad_id), tipoId, titular || reg.titular, ci || reg.ci, celular ?? reg.celular, manzana || reg.manzana, lote || reg.lote, fecha_ejec, evidencia_url, evidencia_url_2 || null, evidencia_url_3 || null, observaciones ?? reg.observaciones, ahora, reg.id]
+        `UPDATE registros SET modalidad_id=$1, tipo_registro_id=$2, titular=$3, ci=$4, celular=$5, manzana=$6, lote=$7, fecha_ejec=$8, evidencia_url=$9, evidencia_url_2=$10, evidencia_url_3=$11, observaciones=$12, estado_id=$13, updated_at=$14 WHERE id=$15`,
+        [Number(modalidad_id), tipoId, titular || reg.titular, ci || reg.ci, celular ?? reg.celular, manzana || reg.manzana, lote || reg.lote, fecha_ejec, evidencia_url, evidencia_url_2 || null, evidencia_url_3 || null, observaciones ?? reg.observaciones, nuevoEstado, ahora, reg.id]
       );
 
       await client.query(
-        `INSERT INTO historial_registros (registro_id, estado_id, fecha, usuario_id_verif) VALUES ($1,5,$2,$3)`,
-        [reg.id, ahora, req.usuario.id]
+        `INSERT INTO historial_registros (registro_id, estado_id, fecha, usuario_id_verif) VALUES ($1,$2,$3,$4)`,
+        [reg.id, nuevoEstado, ahora, req.usuario.id]
       );
 
       await client.query("COMMIT");

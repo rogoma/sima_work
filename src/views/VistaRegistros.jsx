@@ -87,7 +87,7 @@ export default function VistaRegistros({ registros, usuario, onReabrir, localida
     <div>
       <div style={{ marginBottom: 20 }}>
         <h1 style={{ fontSize: 24, fontWeight: 800, color: C.texto, margin: 0, letterSpacing: "-0.03em" }}>📋 Listado de Registros</h1>
-        <p style={{ color: C.grisTexto, marginTop: 4, fontSize: 13 }}>
+        <p style={{ color: C.rojo, marginTop: 4, fontSize: 13 }}>
           {regs.length} registro{regs.length !== 1 ? "s" : ""} encontrado{regs.length !== 1 ? "s" : ""}
         </p>
       </div>
@@ -163,7 +163,6 @@ export default function VistaRegistros({ registros, usuario, onReabrir, localida
           registros={regs}
           usuario={usuario}
           onReabrir={onReabrir}
-          onEditarCarga={[1, 2, 5].includes(rolId) ? onReabrir : undefined}
           localidades={localidades}
         />
       </div>

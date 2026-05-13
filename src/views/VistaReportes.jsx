@@ -27,7 +27,7 @@ export default function VistaReportes({ registros, localidades, modalidades }) {
     <div>
       <div style={{ marginBottom: isMobile ? 16 : 24 }}>
         <h1 style={{ fontSize: isMobile ? 20 : 24, fontWeight: 800, color: C.texto, margin: 0, letterSpacing: "-0.03em" }}>📈 Reportes y Estadísticas</h1>
-        <p style={{ color: C.grisTexto, marginTop: 4, fontSize: 13 }}>Basados en registros validados</p>
+        <p style={{ color: C.grisTexto, marginTop: 4, fontSize: 13 }}>Basados en registros validados</p>        
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: isMobile ? 14 : 20, marginBottom: 24 }}>

@@ -5,7 +5,7 @@ const fs = require("fs");
 const auth = require("../middlewares/auth");
 
 const UPLOAD_DIR = path.resolve(process.env.UPLOAD_DIR || "./uploads");
-const MAX_SIZE_BYTES = (Number(process.env.MAX_FILE_SIZE_MB) || 10) * 1024 * 1024;
+const MAX_SIZE_BYTES = (Number(process.env.MAX_FILE_SIZE_MB) || 5) * 1024 * 1024;
 
 // Asegurar que el directorio existe
 if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
@@ -53,7 +53,7 @@ router.post("/upload", auth, upload.single("archivo"), (req, res) => {
 router.use((err, _req, res, _next) => {
   if (err.code === "LIMIT_FILE_SIZE") {
     return res.status(413).json({
-      error: `El archivo supera el tamaño máximo permitido (${process.env.MAX_FILE_SIZE_MB || 10} MB).`,
+      error: `El archivo supera el tamaño máximo permitido (${process.env.MAX_FILE_SIZE_MB || 5} MB).`,
     });
   }
   res.status(400).json({ error: err.message });

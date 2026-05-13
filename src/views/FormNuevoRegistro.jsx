@@ -102,7 +102,7 @@ export default function FormNuevoRegistro({ usuario, registros, onGuardar, onCan
   const confirmar = async () => {
     setSubmitting(true);
     try {
-      const payload = { ...form, estado_id: 5, ci: form.ci.replace(/\./g, "") };
+      const payload = { ...form, estado_id: esEdicion ? registroEditar.estado_id : 5, ci: form.ci.replace(/\./g, "") };
       if (esEdicion) await corregirRegistro(registroEditar.id, payload);
       else await crearRegistro(payload);
       onGuardar(esEdicion);
@@ -212,7 +212,7 @@ export default function FormNuevoRegistro({ usuario, registros, onGuardar, onCan
                           <div style={{ fontSize: 13, fontWeight: 600, color: url ? "#065F46" : C.grisTexto }}>
                             {isUploading ? "Subiendo..." : url ? url.split("/").pop() : "Haga clic para adjuntar"}
                           </div>
-                          <div style={{ fontSize: 11, color: C.grisTexto, marginTop: 2 }}>JPG, PNG, WEBP o PDF · Máx. 10 MB</div>
+                          <div style={{ fontSize: 11, color: C.grisTexto, marginTop: 2 }}>JPG, PNG, WEBP o PDF · Máx. 5 MB</div>
                         </div>
                         {url && <button type="button" onClick={(e) => { e.stopPropagation(); setF(key, ""); }} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 16, color: C.rojo, padding: 4 }}>✕</button>}
                       </div>
@@ -254,7 +254,7 @@ export default function FormNuevoRegistro({ usuario, registros, onGuardar, onCan
             {paso < 4 ? (
               <button onClick={siguiente} disabled={bloqueoDup} style={{ padding: "10px 26px", background: bloqueoDup ? C.grisMedio : `linear-gradient(135deg,${C.azul},${C.azulMedio})`, color: bloqueoDup ? C.grisTexto : C.blanco, border: "none", borderRadius: 10, cursor: bloqueoDup ? "not-allowed" : "pointer", fontSize: 14, fontWeight: 700 }}>Siguiente</button>
             ) : (
-              <button onClick={confirmar} disabled={submitting} style={{ padding: "10px 30px", background: `linear-gradient(135deg,${C.verde},#047857)`, color: C.blanco, border: "none", borderRadius: 10, cursor: submitting ? "wait" : "pointer", fontSize: 14, fontWeight: 700, boxShadow: "0 4px 16px rgba(5,150,105,0.3)", opacity: submitting ? 0.7 : 1 }}>{submitting ? "Enviando..." : esEdicion ? "Reenviar a Validación ✓" : "Enviar a Validación ✓"}</button>
+              <button onClick={confirmar} disabled={submitting} style={{ padding: "10px 30px", background: `linear-gradient(135deg,${C.verde},#047857)`, color: C.blanco, border: "none", borderRadius: 10, cursor: submitting ? "wait" : "pointer", fontSize: 14, fontWeight: 700, boxShadow: "0 4px 16px rgba(5,150,105,0.3)", opacity: submitting ? 0.7 : 1 }}>{submitting ? "Guardando..." : esEdicion ? "Actualizar Información ✓" : "Enviar a Validación ✓"}</button>
             )}
           </div>
         </div>

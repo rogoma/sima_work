@@ -90,7 +90,7 @@ export default function VistaLocalidad({ localidadId, registros, usuario, setVis
         <div style={{ padding: "16px 20px", borderBottom: `1px solid ${C.grisMedio}` }}>
           <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>Registros de {locData.nombre}</h3>
         </div>
-        <TablaRegistros registros={locRegs} usuario={usuario} compact localidades={localidades} onEditar={setEditandoReg} />
+        <TablaRegistros registros={locRegs} usuario={usuario} compact localidades={localidades} />
       </div>
     </div>
   );

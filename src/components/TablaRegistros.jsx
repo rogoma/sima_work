@@ -48,6 +48,12 @@ export function ModalDetalleRegistro({ registro: r, onClose, localidades = [] })
           ["Manzana / Lote", `${fullReg.manzana} / ${fullReg.lote}`],
           ["Estrategia", <>{fullReg.modalidad_cat && <CatBadge cat={fullReg.modalidad_cat} />} <span style={{ fontSize: 12, marginLeft: 4 }}>{fullReg.modalidad_nombre || fullReg.modalidad_id}</span></>],
           ["Estado", <Badge estado={fullReg.estado} />],
+          ...(fullReg.estado === "rechazado"
+            ? [["Motivo de Rechazo", (() => {
+                const motivo = [...(fullReg.historial || [])].reverse().find(h => h.estado === "rechazado")?.comentario;
+                return <span style={{ color: "#B91C1C", fontStyle: motivo ? "normal" : "italic" }}>{motivo || "Sin motivo especificado"}</span>;
+              })()]]
+            : []),
           ["Fecha Ejecución", fmt(fullReg.fecha_ejec)],
           ["Fecha Carga", fmtDT(fullReg.fecha_carga)],
           // ["Cargado por", fullReg.cargado_por_nombre || fullReg.cargado_por],
@@ -103,7 +109,17 @@ export default function TablaRegistros({ registros, usuario, compact = false, on
                 <span style={{ fontFamily: "monospace", fontSize: 12, color: C.azul, fontWeight: 700 }}>{r.id}</span>
                 <Badge estado={r.estado} />
               </div>
-              <div style={{ fontWeight: 700, color: C.texto, fontSize: 14, marginBottom: 2 }}>{r.titular}</div>
+              <div style={{ fontWeight: 700, color: C.texto, fontSize: 14, marginBottom: 2, display: "flex", alignItems: "center", gap: 6 }}>
+                {r.titular}
+                {Number(r.usuario_id_carga) !== Number(usuario.id) && ![1, 3, 5].includes(usuario.rol_id) && (
+                  <span title="Cargado por otro usuario" style={{ display: "inline-flex", alignItems: "center", color: "#D97706" }}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                      <line x1="18" y1="8" x2="23" y2="13"/><line x1="23" y1="8" x2="18" y2="13"/>
+                    </svg>
+                  </span>
+                )}
+              </div>
               <div style={{ fontSize: 12, color: C.grisTexto, marginBottom: 8 }}>
                 CIN°: {fmtNum(r.ci)}
                 {!compact && ` · ${r.localidad_nombre || locNombre(r.localidad_id)}`}
@@ -114,31 +130,25 @@ export default function TablaRegistros({ registros, usuario, compact = false, on
                 <span style={{ fontSize: 11, color: C.grisTexto }}>{fmt(r.fecha_ejec)}</span>
                 <EvidenciaIcons registro={r} />
               </div>
-              <div style={{ display: "flex", gap: 8 }}>
-                {r.estado === "rechazado" && onEditar ? (
-                  <button
-                    onClick={() => onEditar(r)}
-                    style={{ flex: 1, padding: "8px 0", background: C.verde, color: C.blanco, border: "none", borderRadius: 8, fontSize: 12, cursor: "pointer", fontWeight: 600 }}
-                  >
-                    Editar
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => setDetalle(r)}
-                    style={{ flex: 1, padding: "8px 0", background: C.azul, color: C.blanco, border: "none", borderRadius: 8, fontSize: 12, cursor: "pointer", fontWeight: 600 }}
-                  >
-                    Ver detalle
-                  </button>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <button onClick={() => setDetalle(r)} style={{ flex: 1, padding: "8px 0", background: C.azul, color: C.blanco, border: "none", borderRadius: 8, fontSize: 12, cursor: "pointer", fontWeight: 600 }}>Ver detalle</button>
+                {r.estado === "pendiente" && Number(r.usuario_id_carga) === Number(usuario.id) && onReabrir && (
+                  <button onClick={() => onReabrir(r)} style={{ flex: 1, padding: "8px 0", background: C.verde, color: C.blanco, border: "none", borderRadius: 8, fontSize: 12, cursor: "pointer", fontWeight: 600 }}>Editar</button>
                 )}
-                {r.estado === "rechazado" && r.cargado_por === usuario.id && onReabrir && (
-                  <button onClick={() => onReabrir(r)} style={{ flex: 1, padding: "8px 0", background: "#FEF3C7", color: "#B45309", border: "none", borderRadius: 8, fontSize: 12, cursor: "pointer", fontWeight: 600 }}>
-                    Corregir
-                  </button>
+                {r.estado === "pendiente" && Number(r.usuario_id_carga) !== Number(usuario.id) && onReabrir && (
+                  <div style={{ flex: 1, fontSize: 11, color: C.grisTexto, fontStyle: "italic", padding: "4px 0" }}>No fue cargado por usted</div>
                 )}
-                {r.estado === "validado" && onEditarCarga && (
-                  <button onClick={() => onEditarCarga(r)} style={{ flex: 1, padding: "8px 0", background: "#FEF3C7", color: "#92400E", border: "none", borderRadius: 8, fontSize: 12, cursor: "pointer", fontWeight: 600 }}>
-                    Editar Carga
-                  </button>
+                {r.estado === "rechazado" && onEditar && (
+                  <button onClick={() => onEditar(r)} style={{ flex: 1, padding: "8px 0", background: C.verde, color: C.blanco, border: "none", borderRadius: 8, fontSize: 12, cursor: "pointer", fontWeight: 600 }}>Editar</button>
+                )}
+                {r.estado === "rechazado" && onReabrir && (Number(r.usuario_id_carga) === Number(usuario.id) || [1, 3, 5].includes(usuario.rol_id)) && (
+                  <button onClick={() => onReabrir(r)} style={{ flex: 1, padding: "8px 0", background: C.verde, color: C.blanco, border: "none", borderRadius: 8, fontSize: 12, cursor: "pointer", fontWeight: 600 }}>Editar</button>
+                )}
+                {r.estado === "rechazado" && onReabrir && Number(r.usuario_id_carga) !== Number(usuario.id) && ![1, 3, 5].includes(usuario.rol_id) && (
+                  <div style={{ flex: 1, fontSize: 11, color: C.grisTexto, fontStyle: "italic", padding: "4px 0" }}>No fue cargado por usted</div>
+                )}
+                {r.estado === "validado" && [1, 3, 5].includes(usuario.rol_id) && onReabrir && (
+                  <button onClick={() => onReabrir(r)} style={{ flex: 1, padding: "8px 0", background: "#FEF3C7", color: "#92400E", border: "none", borderRadius: 8, fontSize: 12, cursor: "pointer", fontWeight: 600 }}>Editar</button>
                 )}
               </div>
             </div>
@@ -168,7 +178,17 @@ export default function TablaRegistros({ registros, usuario, compact = false, on
               <tr key={r.id} style={{ backgroundColor: i % 2 === 0 ? C.blanco : C.gris, borderBottom: `1px solid ${C.grisMedio}` }}>
                 <td style={{ padding: "11px 14px", fontFamily: "monospace", fontSize: 12, color: C.azul, fontWeight: 700 }}>{i + 1}</td>
                 <td style={{ padding: "11px 14px", fontWeight: 600, color: C.texto }}>
-                  {r.titular}
+                  <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                    {r.titular}
+                    {Number(r.usuario_id_carga) !== Number(usuario.id) && ![1, 3, 5].includes(usuario.rol_id) && (
+                      <span title="Cargado por otro usuario" style={{ display: "inline-flex", alignItems: "center", color: "#D97706", flexShrink: 0 }}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                          <line x1="18" y1="8" x2="23" y2="13"/><line x1="23" y1="8" x2="18" y2="13"/>
+                        </svg>
+                      </span>
+                    )}
+                  </div>
                   <div style={{ fontSize: 11, color: C.grisTexto }}>CIN°: {fmtNum(r.ci)}</div>
                 </td>
                 {!compact && <td style={{ padding: "11px 14px", color: C.texto }}>{r.localidad_nombre || locNombre(r.localidad_id)}</td>}
@@ -181,31 +201,25 @@ export default function TablaRegistros({ registros, usuario, compact = false, on
                 <td style={{ padding: "11px 14px" }}><Badge estado={r.estado} /></td>
                 <td style={{ padding: "11px 14px" }}><EvidenciaIcons registro={r} /></td>
                 <td style={{ padding: "11px 14px" }}>
-                  <div style={{ display: "flex", gap: 6 }}>
-                    {r.estado === "rechazado" && onEditar ? (
-                      <button
-                        onClick={() => onEditar(r)}
-                        style={{ padding: "5px 12px", background: C.verde, color: C.blanco, border: "none", borderRadius: 8, fontSize: 11, cursor: "pointer", fontWeight: 600 }}
-                      >
-                        Editar
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => setDetalle(r)}
-                        style={{ padding: "5px 12px", background: C.azul, color: C.blanco, border: "none", borderRadius: 8, fontSize: 11, cursor: "pointer", fontWeight: 600 }}
-                      >
-                        Ver
-                      </button>
+                  <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                    <button onClick={() => setDetalle(r)} style={{ padding: "5px 12px", background: C.azul, color: C.blanco, border: "none", borderRadius: 8, fontSize: 11, cursor: "pointer", fontWeight: 600 }}>Ver</button>
+                    {r.estado === "pendiente" && Number(r.usuario_id_carga) === Number(usuario.id) && onReabrir && (
+                      <button onClick={() => onReabrir(r)} style={{ padding: "5px 12px", background: C.verde, color: C.blanco, border: "none", borderRadius: 8, fontSize: 11, cursor: "pointer", fontWeight: 600 }}>Editar</button>
                     )}
-                    {r.estado === "rechazado" && r.cargado_por === usuario.id && onReabrir && (
-                      <button onClick={() => onReabrir(r)} style={{ padding: "5px 12px", background: "#FEF3C7", color: "#B45309", border: "none", borderRadius: 8, fontSize: 11, cursor: "pointer", fontWeight: 600 }}>
-                        Corregir
-                      </button>
+                    {r.estado === "pendiente" && Number(r.usuario_id_carga) !== Number(usuario.id) && onReabrir && (
+                      <span title="Este registro no fue cargado por usted" style={{ fontSize: 14, cursor: "help", color: C.grisTexto }}>ℹ️</span>
                     )}
-                    {r.estado === "validado" && onEditarCarga && (
-                      <button onClick={() => onEditarCarga(r)} style={{ padding: "5px 12px", background: "#FEF3C7", color: "#92400E", border: "none", borderRadius: 8, fontSize: 11, cursor: "pointer", fontWeight: 600 }}>
-                        Editar Carga
-                      </button>
+                    {r.estado === "rechazado" && onEditar && (
+                      <button onClick={() => onEditar(r)} style={{ padding: "5px 12px", background: C.verde, color: C.blanco, border: "none", borderRadius: 8, fontSize: 11, cursor: "pointer", fontWeight: 600 }}>Editar</button>
+                    )}
+                    {r.estado === "rechazado" && onReabrir && (Number(r.usuario_id_carga) === Number(usuario.id) || [1, 3, 5].includes(usuario.rol_id)) && (
+                      <button onClick={() => onReabrir(r)} style={{ padding: "5px 12px", background: C.verde, color: C.blanco, border: "none", borderRadius: 8, fontSize: 11, cursor: "pointer", fontWeight: 600 }}>Editar</button>
+                    )}
+                    {r.estado === "rechazado" && onReabrir && Number(r.usuario_id_carga) !== Number(usuario.id) && ![1, 3, 5].includes(usuario.rol_id) && (
+                      <span title="Este registro no fue cargado por usted" style={{ fontSize: 14, cursor: "help", color: C.grisTexto }}>ℹ️</span>
+                    )}
+                    {r.estado === "validado" && [1, 3, 5].includes(usuario.rol_id) && onReabrir && (
+                      <button onClick={() => onReabrir(r)} style={{ padding: "5px 12px", background: "#FEF3C7", color: "#92400E", border: "none", borderRadius: 8, fontSize: 11, cursor: "pointer", fontWeight: 600 }}>Editar</button>
                     )}
                   </div>
                 </td>

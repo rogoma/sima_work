@@ -8,6 +8,9 @@ export default function Sidebar({ usuario, vista, setVista, pendientes, localida
   const [adminExpanded, setAdminExpanded] = useState(
     () => vista === "admin" || vista === "roles"
   );
+  const [registrosExpanded, setRegistrosExpanded] = useState(
+    () => vista === "registros" || vista === "nuevo" || vista === "validacion"
+  );
   const [docsExpanded, setDocsExpanded] = useState(false);
 
   const esCoordinador = [1, 5].includes(usuario.rol_id);
@@ -16,10 +19,12 @@ export default function Sidebar({ usuario, vista, setVista, pendientes, localida
   const items = [
     { id: "dashboard", icon: "📊", label: "Tablero" },
     ...(verLineaAvance ? [{ id: "linea", icon: "📈", label: "Línea de Avance" }] : []),
-    { id: "registros", icon: "📋", label: "Registros" },
+  ];
+
+  const registrosSubitems = [
+    { id: "registros", icon: "📋", label: "Lista de Registros" },
     { id: "nuevo", icon: "➕", label: "Nuevo Registro" },
     ...(esCoordinador ? [{ id: "validacion", icon: "✅", label: "Validación", badge: pendientes }] : []),
-    ...(esCoordinador ? [{ id: "reportes", icon: "📈", label: "Reportes" }] : []),
   ];
 
   const adminSubitems = [    
@@ -125,6 +130,65 @@ export default function Sidebar({ usuario, vista, setVista, pendientes, localida
               )}
             </button>
           ))}
+
+          {/* Sección Registros */}
+          {(() => {
+            const isRegistrosActive = vista === "registros" || vista === "nuevo" || vista === "validacion";
+            return (
+              <>
+                <button
+                  onClick={() => setRegistrosExpanded((v) => !v)}
+                  style={{
+                    ...navItemStyle(isRegistrosActive && !registrosExpanded),
+                    background: isRegistrosActive ? "rgba(255,255,255,0.10)" : "none",
+                    borderLeft: isRegistrosActive ? `3px solid rgba(255,255,255,0.5)` : "3px solid transparent",
+                  }}
+                  onMouseEnter={(e) => { if (!isRegistrosActive) e.currentTarget.style.background = "rgba(255,255,255,0.07)"; }}
+                  onMouseLeave={(e) => { if (!isRegistrosActive) e.currentTarget.style.background = isRegistrosActive ? "rgba(255,255,255,0.10)" : "none"; }}
+                >
+                  <span style={{ fontSize: 16 }}>📋</span>
+                  <span style={{ flex: 1 }}>Registros</span>
+                  <span style={{ fontSize: 10, opacity: 0.7, transition: "transform 0.2s", display: "inline-block", transform: registrosExpanded ? "rotate(90deg)" : "rotate(0deg)" }}>
+                    ▶
+                  </span>
+                </button>
+                {registrosExpanded && (
+                  <div style={{ overflow: "hidden" }}>
+                    {registrosSubitems.map((item) => (
+                      <button
+                        key={item.id + item.label}
+                        onClick={() => setVista(item.id)}
+                        style={subItemStyle(vista === item.id)}
+                        onMouseEnter={(e) => { if (vista !== item.id) e.currentTarget.style.background = "rgba(255,255,255,0.07)"; }}
+                        onMouseLeave={(e) => { if (vista !== item.id) e.currentTarget.style.background = "none"; }}
+                      >
+                        <span style={{ fontSize: 14 }}>{item.icon}</span>
+                        <span style={{ flex: 1 }}>{item.label}</span>
+                        {item.badge > 0 && (
+                          <span style={{ background: C.rojo, color: C.blanco, borderRadius: 10, padding: "1px 7px", fontSize: 10, fontWeight: 800, animation: "pulse 2s infinite" }}>
+                            {item.badge}
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </>
+            );
+          })()}
+
+          {/* Reportes */}
+          {esCoordinador && (
+            <button
+              onClick={() => setVista("reportes")}
+              style={navItemStyle(vista === "reportes")}
+              onMouseEnter={(e) => { if (vista !== "reportes") e.currentTarget.style.background = "rgba(255,255,255,0.07)"; }}
+              onMouseLeave={(e) => { if (vista !== "reportes") e.currentTarget.style.background = "none"; }}
+            >
+              <span style={{ fontSize: 16 }}>📑</span>
+              <span style={{ flex: 1 }}>Reportes</span>
+            </button>
+          )}
 
           {/* Sección Administración (solo coordinador) */}
           {esCoordinador && (

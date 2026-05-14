@@ -1,4 +1,6 @@
 node_modules/
+uploads/
+documents/
 dist/
 build/
 .env

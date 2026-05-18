@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { C } from "../styles/colors";
-import { crearRegistro, corregirRegistro, subirEvidencia } from "../services/api";
+import { crearRegistro, corregirRegistro, subirEvidencia, verificarCI } from "../services/api";
 import { fmt } from "../services/helpers";
 import { CatBadge } from "../components/Badges";
 import { Campo, Input, Select, Textarea } from "../components/FormFields";
@@ -33,6 +33,7 @@ export default function FormNuevoRegistro({ usuario, registros, onGuardar, onCan
   const [errores, setErrores] = useState({});
   const [alertaDup, setAlertaDup] = useState(null);
   const [bloqueoDup, setBloqueoDup] = useState(false);
+  const [ciDuplicado, setCiDuplicado] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [uploading, setUploading] = useState([false, false, false]);
   const fileRef1 = useRef(null);
@@ -96,7 +97,7 @@ export default function FormNuevoRegistro({ usuario, registros, onGuardar, onCan
     return Object.keys(e).length === 0;
   };
 
-  const siguiente = () => { if (validarPaso(paso) && !bloqueoDup) setPaso((p) => Math.min(4, p + 1)); };
+  const siguiente = () => { if (validarPaso(paso) && !bloqueoDup && !ciDuplicado) setPaso((p) => Math.min(4, p + 1)); };
   const anterior = () => { setPaso((p) => Math.max(1, p - 1)); setErrores({}); };
 
   const confirmar = async () => {
@@ -149,7 +150,33 @@ export default function FormNuevoRegistro({ usuario, registros, onGuardar, onCan
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
               <div style={{ gridColumn: "1/-1" }}><Campo label="Localidad" required error={errores.localidad_id}><Select value={form.localidad_id} onChange={(e) => setF("localidad_id", e.target.value)} disabled={locales.length === 1}><option value="">Seleccionar...</option>{locales.map((l) => <option key={l.id} value={l.id}>{l.nombre}</option>)}</Select></Campo></div>
               <div style={{ gridColumn: "1/-1" }}><Campo label="Nombre del titular" required error={errores.titular}><Input value={form.titular} onChange={(e) => setF("titular", e.target.value.slice(0, 60))} placeholder="Ej: Juan Ramírez" maxLength={60} /></Campo></div>
-              <Campo label="Céd. de identidad" required error={errores.ci}><Input value={form.ci} onChange={(e) => { const digits = e.target.value.replace(/\D/g, "").slice(0, 10); const formatted = digits.replace(/\B(?=(\d{3})+(?!\d))/g, "."); setF("ci", formatted); }} placeholder="Ej: 3.456.789" /></Campo>
+              <Campo label="Céd. de identidad" required error={errores.ci}>
+                <Input
+                  value={form.ci}
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/\D/g, "").slice(0, 10);
+                    const formatted = digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+                    setF("ci", formatted);
+                    if (ciDuplicado) setCiDuplicado(false);
+                  }}
+                  onBlur={async () => {
+                    const ciRaw = form.ci.replace(/\./g, "").trim();
+                    if (ciRaw.length < 5) return;
+                    if (esEdicion && ciRaw === String(registroEditar.ci).replace(/\./g, "").trim()) return;
+                    try {
+                      const res = await verificarCI(ciRaw);
+                      if (res?.existe) {
+                        setCiDuplicado(true);
+                        setErrores((prev) => ({ ...prev, ci: `El beneficiario ya posee un registro (ID ${res.id}). Verifique la cédula.` }));
+                      } else {
+                        setCiDuplicado(false);
+                        setErrores((prev) => ({ ...prev, ci: undefined }));
+                      }
+                    } catch { /* silencioso si falla la red */ }
+                  }}
+                  placeholder="Ej: 3.456.789"
+                />
+              </Campo>
               <Campo label="Celular"><Input value={form.celular} onChange={(e) => setF("celular", e.target.value.slice(0, 12))} placeholder="Ej: 0981-123456" maxLength={11} /></Campo>
               <Campo label="Manzana" required error={errores.manzana}><Input value={form.manzana} onChange={(e) => setF("manzana", e.target.value.slice(0, 6))} onBlur={() => { if (form.manzana.trim().length === 1) setErrores((prev) => ({ ...prev, manzana: "Mínimo 2 dígitos." })); else setErrores((prev) => ({ ...prev, manzana: undefined })); }} placeholder="Ej: 12" maxLength={6} /></Campo>
               <Campo label="Lote" required error={errores.lote}><Input value={form.lote} onChange={(e) => setF("lote", e.target.value.slice(0, 6))} onBlur={() => { if (form.lote.trim().length === 1) setErrores((prev) => ({ ...prev, lote: "Mínimo 2 dígitos." })); else setErrores((prev) => ({ ...prev, lote: undefined })); }} placeholder="Ej: 05" maxLength={6} /></Campo>

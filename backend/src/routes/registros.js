@@ -101,6 +101,15 @@ router.get("/", auth, async (req, res) => {
   res.json({ data: rows, total: Number(total[0].count), page: Number(page), limit: Number(limit) });
 });
 
+// ─── GET /api/registros/check-ci?ci=... ──────────────────────────────────────
+router.get("/check-ci", auth, async (req, res) => {
+  const ci = (req.query.ci || "").replace(/\./g, "").trim();
+  if (!ci) return res.json({ existe: false });
+  const { rows } = await pool.query(`SELECT id FROM registros WHERE ci=$1 LIMIT 1`, [ci]);
+  if (rows.length) return res.json({ existe: true, id: rows[0].id });
+  res.json({ existe: false });
+});
+
 // ─── GET /api/registros/:id ────────────────────────────────────────────────────
 router.get("/:id", auth, async (req, res) => {
   const client = await pool.connect();
@@ -162,6 +171,15 @@ router.post(
         return res.status(409).json({ error: `Ya existe un registro VALIDADO para esta parcela (${dup[0].id}).`, codigo: "DUPLICADO_VALIDADO" });
       }
 
+      const { rows: dupCi } = await client.query(
+        `SELECT id FROM registros WHERE ci=$1`,
+        [ci]
+      );
+      if (dupCi.length) {
+        await client.query("ROLLBACK");
+        return res.status(409).json({ error: `Ya existe un registro para la CI ${ci} (id: ${dupCi[0].id}).`, codigo: "DUPLICADO_CI" });
+      }
+
       const ahora = new Date().toISOString();
 
       const { rows: inserted } = await client.query(
@@ -187,6 +205,9 @@ router.post(
       }
     } catch (err) {
       await client.query("ROLLBACK");
+      if (err.code === "23505" && err.constraint === "registros_new_ci_key") {
+        return res.status(409).json({ error: `Ya existe un registro para la CI ${ci}.`, codigo: "DUPLICADO_CI" });
+      }
       throw err;
     } finally {
       client.release();

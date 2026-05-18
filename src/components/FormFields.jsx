@@ -25,8 +25,8 @@ export function Input({ ...p }) {
     <input
       {...p}
       style={{ ...inputStyle(p.disabled), ...p.style }}
-      onFocus={(e) => { e.target.style.borderColor = C.azul; e.target.style.boxShadow = `0 0 0 3px ${C.azulClaro}`; }}
-      onBlur={(e) => { e.target.style.borderColor = C.grisBorde; e.target.style.boxShadow = "none"; }}
+      onFocus={(e) => { e.target.style.borderColor = C.azul; e.target.style.boxShadow = `0 0 0 3px ${C.azulClaro}`; if (p.onFocus) p.onFocus(e); }}
+      onBlur={(e) => { e.target.style.borderColor = C.grisBorde; e.target.style.boxShadow = "none"; if (p.onBlur) p.onBlur(e); }}
     />
   );
 }

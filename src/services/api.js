@@ -80,6 +80,10 @@ export function fetchRegistro(id) {
   return apiFetch(`/registros/${id}`);
 }
 
+export function verificarCI(ci) {
+  return apiFetch(`/registros/check-ci?ci=${encodeURIComponent(ci)}`);
+}
+
 export function crearRegistro(data) {
   return apiFetch("/registros", {
     method: "POST",

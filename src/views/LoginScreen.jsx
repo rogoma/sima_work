@@ -34,7 +34,7 @@ export default function LoginScreen({ onLogin }) {
           <p style={{ fontSize: 13, color: C.grisTexto, marginTop: 4, lineHeight: 1.5 }}>Sistema de Monitoreo <br />de Alcantarillado</p>
         </div>
         <Campo label="Usuario">
-          <Input value={user} onChange={(e) => { setUser(e.target.value); setError(""); }} placeholder="Ej: coord1" />
+          <Input value={user} onChange={(e) => { setUser(e.target.value); setError(""); }} placeholder="Ej: 1274745" />
         </Campo>
         <Campo label="Contraseña">
           <Input type="password" value={pass} onChange={(e) => { setPass(e.target.value); setError(""); }} onKeyDown={(e) => e.key === "Enter" && handleLogin()} placeholder="Contraseña" />

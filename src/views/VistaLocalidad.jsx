@@ -37,7 +37,9 @@ export default function VistaLocalidad({ localidadId, registros, usuario, setVis
 
   const adeq = locData.adecuaciones_total || 0;
   const proyecciones = locData.proyecciones_icaro || [];
-  const locRegs = registros.filter((r) => Number(r.localidad_id) === Number(localidadId));
+  const locRegs = registros
+    .filter((r) => Number(r.localidad_id) === Number(localidadId))
+    .sort((a, b) => (a.titular || "").localeCompare(b.titular || "", "es", { sensitivity: "base" }));
   const conn      = locRegs.filter((r) => r.estado === "validado").length;
   const pendientes = locRegs.filter((r) => r.estado === "pendiente").length;
   const brecha    = Number(locData.previstas) - conn;
@@ -48,7 +50,7 @@ export default function VistaLocalidad({ localidadId, registros, usuario, setVis
         <h1 style={{ margin: "0 0 4px", fontSize: 24, fontWeight: 800, color: C.texto, letterSpacing: "-0.03em" }}>📍 {locData.nombre}</h1>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <p style={{ margin: 0, fontSize: 13, color: C.grisTexto }}>Junta de Saneamiento de {locData.nombre}</p>
-          <button onClick={() => setVista("dashboard")} style={{ padding: "5px 16px", background: C.rojo, border: "none", borderRadius: 10, cursor: "pointer", fontSize: 13, color: C.blanco, fontWeight: 600 }}>Volver</button>
+          {/* <button onClick={() => setVista("dashboard")} style={{ padding: "5px 16px", background: C.rojo, border: "none", borderRadius: 10, cursor: "pointer", fontSize: 13, color: C.blanco, fontWeight: 600 }}>Volver</button> */}
         </div>
       </div>
 

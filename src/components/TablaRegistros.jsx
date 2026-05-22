@@ -94,6 +94,28 @@ export default function TablaRegistros({ registros, usuario, compact = false, on
   const isMobile = useMobile();
   const locNombre = (id) => localidades.find((l) => Number(l.id) === Number(id))?.nombre || id;
 
+  // Cuenta cuántas parcelas (registros_det) tiene cada beneficiario (ci) en la lista visible
+  const parcelasPorCI = registros.reduce((acc, r) => {
+    const key = String(r.ci || "").replace(/\./g, "").trim();
+    if (key) acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {});
+
+  // Badge de múltiples parcelas: se muestra si el beneficiario tiene >1 en la lista
+  const BadgeMulti = ({ ci }) => {
+    const key   = String(ci || "").replace(/\./g, "").trim();
+    const count = parcelasPorCI[key] || 0;
+    if (count <= 1) return null;
+    return (
+      <span
+        title={`Beneficiario con ${count} parcelas registradas`}
+        style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", background: "#FEF3C7", color: "#92400E", borderRadius: 6, fontSize: 10, fontWeight: 800, padding: "1px 5px", border: "1px solid #FCD34D", flexShrink: 0 }}
+      >
+        ×{count}
+      </span>
+    );
+  };
+
   if (!registros.length) {
     return <div style={{ padding: 40, textAlign: "center", color: C.grisTexto, fontSize: 13 }}>No hay registros para mostrar.</div>;
   }
@@ -119,6 +141,7 @@ export default function TablaRegistros({ registros, usuario, compact = false, on
                     </svg>
                   </span>
                 )}
+                <BadgeMulti ci={r.ci} />
               </div>
               <div style={{ fontSize: 12, color: C.grisTexto, marginBottom: 8 }}>
                 CIN°: {fmtNum(r.ci)}
@@ -188,6 +211,7 @@ export default function TablaRegistros({ registros, usuario, compact = false, on
                         </svg>
                       </span>
                     )}
+                    <BadgeMulti ci={r.ci} />
                   </div>
                   <div style={{ fontSize: 11, color: C.grisTexto }}>CIN°: {fmtNum(r.ci)}</div>
                 </td>

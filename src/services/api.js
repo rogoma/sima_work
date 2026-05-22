@@ -91,6 +91,16 @@ export function crearRegistro(data) {
   });
 }
 
+// Crea N registros_det en una sola transacción para el mismo beneficiario.
+// base: campos del header { localidad_id, tipo, titular, ci, celular }
+// parcelas: [{ manzana, lote, fecha_ejec, modalidad_id, evidencia_url, evidencia_url_2, evidencia_url_3, observaciones }]
+export function crearRegistrosBatch(base, parcelas) {
+  return apiFetch("/registros/batch", {
+    method: "POST",
+    body: JSON.stringify({ ...base, parcelas }),
+  });
+}
+
 export function corregirRegistro(id, data) {
   return apiFetch(`/registros/${id}`, {
     method: "PUT",

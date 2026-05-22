@@ -37,7 +37,10 @@ router.get("/", auth, async (req, res) => {
        l.id, l.nombre,
        COALESCE(SUM(lt.cantidad) FILTER (WHERE lt.tiporegistro_id = 0), 0) AS previstas,
        COALESCE(SUM(lt.cantidad) FILTER (WHERE lt.tiporegistro_id = 1), 0) AS conectados,
-       (SELECT COUNT(*) FROM registros r WHERE r.localidad_id = l.id AND r.estado_id = 5) AS pendientes
+       (SELECT COUNT(*)
+        FROM registros_det det
+        JOIN registros reg ON reg.id = det.registro_id
+        WHERE reg.localidad_id = l.id AND det.estado_id = 5) AS pendientes
      FROM localidades l
      LEFT JOIN localidad_tiporegistro lt ON lt.localidad_id = l.id
      ${where}
@@ -54,8 +57,8 @@ router.get("/dashboard", auth, async (req, res) => {
   const { rows } = await pool.query(
     `SELECT
        (SELECT COALESCE(SUM(cantidad), 0) FROM localidad_tiporegistro WHERE tiporegistro_id = 0) AS meta,
-       (SELECT COUNT(*) FROM registros WHERE estado_id = 4)                                       AS conectados,
-       (SELECT COUNT(*) FROM registros WHERE estado_id = 5)                                       AS pendientes`
+       (SELECT COUNT(*) FROM registros_det WHERE estado_id = 4)                                   AS conectados,
+       (SELECT COUNT(*) FROM registros_det WHERE estado_id = 5)                                   AS pendientes`
   );
 
   const t = rows[0];
@@ -85,7 +88,10 @@ router.get("/:id", auth, async (req, res) => {
        l.id, l.nombre,
        COALESCE(SUM(lt.cantidad) FILTER (WHERE lt.tiporegistro_id = 0), 0) AS previstas,
        COALESCE(SUM(lt.cantidad) FILTER (WHERE lt.tiporegistro_id = 1), 0) AS conectados,
-       (SELECT COUNT(*) FROM registros r WHERE r.localidad_id = l.id AND r.estado_id = 5) AS pendientes
+       (SELECT COUNT(*)
+        FROM registros_det det
+        JOIN registros reg ON reg.id = det.registro_id
+        WHERE reg.localidad_id = l.id AND det.estado_id = 5) AS pendientes
      FROM localidades l
      LEFT JOIN localidad_tiporegistro lt ON lt.localidad_id = l.id
      WHERE l.id = $1

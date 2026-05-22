@@ -67,8 +67,8 @@ export default function VistaValidacion({ registros, onValidar, onRechazar, loca
               {r.modalidad_nombre && <div style={{ fontSize: 12, color: C.grisTexto, marginTop: 4 }}>🔧 {r.modalidad_nombre}</div>}
               {r.evidencia_url && (
                 <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 8, background: C.azulSuave, padding: "8px 12px", borderRadius: 10, width: "fit-content" }}>
-                  <span>{r.evidencia_url.endsWith(".pdf") ? "📄" : "🖼️"}</span>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: C.azul }}>{r.evidencia_url.split("/").pop()}</span>
+                  {/* <span>{r.evidencia_url.endsWith(".pdf") ? "📄" : "🖼️"}</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: C.azul }}>{r.evidencia_url.split("/").pop()}</span> */}
                 </div>
               )}
             </div>

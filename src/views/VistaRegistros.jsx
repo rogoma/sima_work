@@ -78,7 +78,7 @@ export default function VistaRegistros({ registros, usuario, onReabrir, localida
       ) return false;
     }
     return true;
-  });
+  }).sort((a, b) => (a.titular || "").localeCompare(b.titular || "", "es", { sensitivity: "base" }));
 
   const mostrarFiltroLocalidadTodas  = [1, 3, 5].includes(rolId);
   const mostrarFiltroLocalidadPropia = [2, 4, 7].includes(rolId);

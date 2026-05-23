@@ -10,6 +10,7 @@ const usuariosRoutes    = require("./src/routes/usuarios");
 const evidenciaRoutes   = require("./src/routes/evidencia");
 const modalidadesRoutes = require("./src/routes/modalidades");
 const rolesRoutes       = require("./src/routes/roles");
+const documentosRoutes  = require("./src/routes/documentos");
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.use("/api/usuarios",    usuariosRoutes);
 app.use("/api/evidencia",   evidenciaRoutes);
 app.use("/api/modalidades", modalidadesRoutes);
 app.use("/api/roles",       rolesRoutes);
+app.use("/api/documentos",  documentosRoutes);
 
 // ─── HEALTH CHECK ──────────────────────────────────────────────────────────────
 app.get("/api/health", (_req, res) => res.json({ ok: true, timestamp: new Date().toISOString() }));

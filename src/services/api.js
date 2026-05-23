@@ -217,3 +217,27 @@ export function editarModalidad(id, data) {
 export function eliminarModalidad(id) {
   return apiFetch(`/modalidades/${id}`, { method: "DELETE" });
 }
+
+// ─── DOCUMENTOS ───────────────────────────────────────────────────────────────
+
+export function fetchDocumentos() {
+  return apiFetch("/documentos");
+}
+
+export async function subirDocumento(file) {
+  const token = localStorage.getItem("simsas_token");
+  const formData = new FormData();
+  formData.append("archivo", file);
+  const res = await fetch(`${API}/documentos/upload`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: formData,
+  });
+  const data = await res.json();
+  if (!res.ok) throw { status: res.status, ...data };
+  return data;
+}
+
+export function eliminarDocumento(nombre) {
+  return apiFetch(`/documentos/${encodeURIComponent(nombre)}`, { method: "DELETE" });
+}

@@ -241,3 +241,36 @@ export async function subirDocumento(file) {
 export function eliminarDocumento(nombre) {
   return apiFetch(`/documentos/${encodeURIComponent(nombre)}`, { method: "DELETE" });
 }
+
+// ─── DOCUMENTOS POR CARPETA (Fram / Cptan_Miranda) ────────────────────────────
+
+/** Devuelve las carpetas visibles para el usuario según sus localidades */
+export function fetchDocumentosCarpetas() {
+  return apiFetch("/documentos/carpetas");
+}
+
+/** Sube un PDF a una carpeta específica (solo coordinadores) */
+export async function subirDocumentoCarpeta(carpeta, file) {
+  const token = localStorage.getItem("simsas_token");
+  const formData = new FormData();
+  formData.append("archivo", file);
+  const res = await fetch(
+    `${API}/documentos/carpetas/${encodeURIComponent(carpeta)}/upload`,
+    {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    }
+  );
+  const data = await res.json();
+  if (!res.ok) throw { status: res.status, ...data };
+  return data;
+}
+
+/** Elimina un PDF de una carpeta específica (solo coordinadores) */
+export function eliminarDocumentoCarpeta(carpeta, nombre) {
+  return apiFetch(
+    `/documentos/carpetas/${encodeURIComponent(carpeta)}/${encodeURIComponent(nombre)}`,
+    { method: "DELETE" }
+  );
+}

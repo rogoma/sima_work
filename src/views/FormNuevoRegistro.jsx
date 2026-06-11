@@ -349,15 +349,16 @@ function ModalGestionParcelas({
                   style={{ borderColor: errores[`mod_${i}`] ? C.rojo : undefined }}
                 >
                   <option value="">Seleccionar...</option>
-                  {["JUNTA", "CONTRATISTA", "ICARO", "TRABAJADORA SOCIAL"].map((cat) => {
-                    const mods = misModalidades.filter((m) => m.cat === cat);
-                    if (!mods.length) return null;
-                    return (
-                      <optgroup key={cat} label={`── ${cat} ──`}>
-                        {mods.map((m) => <option key={m.id} value={m.id}>{m.nombre}</option>)}
-                      </optgroup>
-                    );
-                  })}
+                  {Array.from(new Set(misModalidades.map((m) => m.cat).filter(Boolean))).map((cat) => (
+                    <optgroup key={cat} label={`── ${cat} ──`}>
+                      {misModalidades.filter((m) => m.cat === cat).map((m) => (
+                        <option key={m.id} value={m.id}>{m.nombre}</option>
+                      ))}
+                    </optgroup>
+                  ))}
+                  {misModalidades.filter((m) => !m.cat).map((m) => (
+                    <option key={m.id} value={m.id}>{m.nombre}</option>
+                  ))}
                 </Select>
                 {errores[`mod_${i}`] && <div style={{ fontSize: 11, color: C.rojo, marginTop: 3 }}>{errores[`mod_${i}`]}</div>}
                 {p.modalidad_id && (
@@ -443,15 +444,7 @@ export default function FormNuevoRegistro({ usuario, registros, onGuardar, onCan
     ? localidades.filter((l) => usuario.localidades.map(Number).includes(Number(l.id)))
     : localidades;
 
-  const misModalidades = (() => {
-    const rid = usuario.rol_id;
-    if (rid === 1) return modalidades.filter((m) => Number(m.id) >= 1 && Number(m.id) <= 13);
-    if (rid === 2) return modalidades.filter((m) => Number(m.id) === 2);
-    if (rid === 3) return modalidades.filter((m) => Number(m.id) >= 3 && Number(m.id) <= 12);
-    if (rid === 4) return modalidades.filter((m) => Number(m.id) === 1);
-    if (rid === 7) return modalidades.filter((m) => Number(m.id) === 13);
-    return modalidades;
-  })();
+  const misModalidades = modalidades;
 
   const esEdicion = !!registroEditar;
 

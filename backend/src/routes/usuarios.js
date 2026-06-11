@@ -235,14 +235,11 @@ router.put(
 // ─── GET /api/usuarios/modalidades/lista ──────────────────────────────────────
 router.get("/modalidades/lista", auth, async (req, res) => {
   const { rows } = await pool.query(
-    `SELECT m.id, m.nombre, m.cat
+    `SELECT m.id, m.nombre, tm.nombre AS cat
      FROM modalidades m
-     INNER JOIN modalidad_roles mr ON mr.modalidad_id = m.id
-     WHERE mr.rol_id = $1
-       AND m.activo = true
-     GROUP BY m.id, m.nombre, m.cat
-     ORDER BY m.cat, m.nombre`,
-    [req.usuario.rol_id]
+     INNER JOIN tipo_modalidad tm ON tm.id = m.id_tipo_modadlidad
+     WHERE m.estado_id = 1
+     ORDER BY tm.nombre, m.nombre`
   );
   res.json(rows);
 });

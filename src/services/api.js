@@ -218,6 +218,34 @@ export function eliminarModalidad(id) {
   return apiFetch(`/modalidades/${id}`, { method: "DELETE" });
 }
 
+// ─── PROFESIONALES ───────────────────────────────────────────────────────────
+
+export function fetchProfesionales() {
+  return apiFetch("/profesionales");
+}
+
+export function fetchProfesiones() {
+  return apiFetch("/profesionales/profesiones");
+}
+
+export function verificarCIProfesional(ci) {
+  return apiFetch(`/profesionales/check-ci?ci=${encodeURIComponent(ci)}`);
+}
+
+export function crearProfesional(data) {
+  return apiFetch("/profesionales", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export function editarProfesional(id, data) {
+  return apiFetch(`/profesionales/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
 // ─── DOCUMENTOS ───────────────────────────────────────────────────────────────
 
 export function fetchDocumentos() {

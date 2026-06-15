@@ -85,7 +85,7 @@ export default function VistaRoles() {
   return (
     <div>
       {/* Encabezado */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
+      <div className="admin-header-row" style={{ alignItems: "flex-start", marginBottom: 24 }}>
         <div>
           <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: C.azulOscuro, letterSpacing: "-0.03em" }}>
             🔑 Roles
@@ -138,7 +138,7 @@ export default function VistaRoles() {
       )}
 
       {/* Tabla de roles */}
-      <div style={{ background: C.blanco, borderRadius: 14, boxShadow: "0 1px 8px rgba(0,0,0,0.07)", overflow: "hidden" }}>
+      <div style={{ background: C.blanco, borderRadius: 14, boxShadow: "0 1px 8px rgba(0,0,0,0.07)", overflowX: "auto" }}>
         {loading ? (
           <div style={{ padding: 40, display: "flex", justifyContent: "center" }}>
             <Loading text="Cargando roles…" />

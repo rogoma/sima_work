@@ -197,7 +197,7 @@ export default function VistaAdmin({ localidades, modalidades }) {
       {tab === "usuarios" && (
         <div>
           {loading ? <Loading /> : <>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+            <div className="admin-header-row">
               <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>Usuarios ({usuarios.length})</h3>
               <div style={{ display: "flex", gap: 8 }}>
                 <button onClick={generarPDFUsuarios} style={{ padding: "9px 18px", background: C.rojo, color: C.blanco, border: "none", borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: "pointer" }}>🖨️ Listado de Usuarios</button>
@@ -207,7 +207,7 @@ export default function VistaAdmin({ localidades, modalidades }) {
             {showNew && (
               <div className="fade-in" style={{ background: C.azulSuave, borderRadius: 14, padding: 20, marginBottom: 20, border: `1px solid ${C.grisMedio}` }}>
                 <h4 style={{ margin: "0 0 14px" }}>Nuevo usuario</h4>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div className="admin-form-grid">
                   <Campo label="Usuario (cédula)" required><Input value={nuevoU.user} onChange={(e) => { const digits = e.target.value.replace(/[^0-9]/g, ""); setN("user", digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".")); }} placeholder="ej: 1.155.372" /></Campo>
                   <Campo label="Nombre y Apellido" required><Input value={nuevoU.nombre} onChange={(e) => setN("nombre", e.target.value)} placeholder="Nombre" /></Campo>
                   <Campo label="Contraseña" required><Input type="password" value={nuevoU.password} onChange={(e) => setN("password", e.target.value)} placeholder="Mín. 6 caracteres" /></Campo>
@@ -243,7 +243,7 @@ export default function VistaAdmin({ localidades, modalidades }) {
               return (
                 <div className="fade-in" style={{ background: "#FFF9E6", borderRadius: 14, padding: 20, marginBottom: 20, border: `1px solid #F0D070` }}>
                   <h4 style={{ margin: "0 0 14px" }}>Editar usuarios: <span style={{ color: C.azul }}>{fmt(editandoU.user)}</span></h4>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  <div className="admin-form-grid">
                     <Campo label="Nombre" required><Input value={editandoU.nombre} onChange={(e) => setE("nombre", e.target.value)} placeholder="Nombre" /></Campo>
                     <Campo label="Nueva contraseña"><Input type="password" value={editandoU.password} onChange={(e) => setE("password", e.target.value)} placeholder="Dejar en blanco para no cambiar" /></Campo>
                     <Campo label="Rol" required><Select value={editandoU.rol_id} onChange={(e) => { const rid = Number(e.target.value); setE("rol_id", rid); if (![1, 2, 3, 4, 5, 7].includes(rid)) setE("localidades", []); else if ([1, 3, 5].includes(rid)) setE("localidades", localidades.map(l => l.id)); else if ([2, 7].includes(rid)) setE("localidades", editandoU.localidades.slice(0, 1)); }}>{roles.map((r) => <option key={r.id} value={r.id}>{r.nombre}</option>)}</Select></Campo>
@@ -276,7 +276,7 @@ export default function VistaAdmin({ localidades, modalidades }) {
                 </div>
               );
             })()}
-            <div style={{ background: C.blanco, borderRadius: 14, border: `1px solid ${C.grisMedio}`, overflow: "hidden" }}>
+            <div style={{ background: C.blanco, borderRadius: 14, border: `1px solid ${C.grisMedio}`, overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
                 <thead><tr style={{ background: C.gris }}>{["Nombre", "Usuario", "Rol", "Localidades", "Estado", ""].map((h) => <th key={h} style={{ padding: "10px 14px", textAlign: "left", fontWeight: 700, color: C.grisTexto, fontSize: 12, borderBottom: `1px solid ${C.grisMedio}` }}>{h}</th>)}</tr></thead>
                 <tbody>{usuarios.map((u, i) => (
@@ -317,7 +317,7 @@ export default function VistaAdmin({ localidades, modalidades }) {
       {tab === "estrategias" && (
         <div>
           {loadingMod ? <Loading /> : <>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+            <div className="admin-header-row">
               <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>Estrategias ({modalidadesAdmin.length})</h3>
               {!editandoMod && <button onClick={() => setShowNewMod(!showNewMod)} style={{ padding: "9px 18px", background: C.azul, color: C.blanco, border: "none", borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: "pointer" }}>+ Nueva Estrategia</button>}
             </div>
@@ -325,7 +325,7 @@ export default function VistaAdmin({ localidades, modalidades }) {
             {showNewMod && (
               <div className="fade-in" style={{ background: C.azulSuave, borderRadius: 14, padding: 20, marginBottom: 20, border: `1px solid ${C.grisMedio}` }}>
                 <h4 style={{ margin: "0 0 14px" }}>Nueva modalidad</h4>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div className="admin-form-grid">
                   <Campo label="Nombre" required><Input value={nuevaMod.nombre} onChange={(e) => setNM("nombre", e.target.value)} placeholder="Ej: Llave en Mano" /></Campo>
                   <Campo label="Categoría" required>
                     <Select value={nuevaMod.cat} onChange={(e) => setNM("cat", e.target.value)}>
@@ -343,7 +343,7 @@ export default function VistaAdmin({ localidades, modalidades }) {
             {editandoMod && (
               <div className="fade-in" style={{ background: "#FFF9E6", borderRadius: 14, padding: 20, marginBottom: 20, border: `1px solid #F0D070` }}>
                 <h4 style={{ margin: "0 0 14px" }}>Editar modalidad</h4>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div className="admin-form-grid">
                   <Campo label="Nombre" required><Input value={editandoMod.nombre} onChange={(e) => setEM("nombre", e.target.value)} placeholder="Nombre" /></Campo>
                   <Campo label="Categoría" required>
                     <Select value={editandoMod.cat} onChange={(e) => setEM("cat", e.target.value)}>
@@ -363,7 +363,7 @@ export default function VistaAdmin({ localidades, modalidades }) {
               </div>
             )}
 
-            <div style={{ background: C.blanco, borderRadius: 14, border: `1px solid ${C.grisMedio}`, overflow: "hidden" }}>
+            <div style={{ background: C.blanco, borderRadius: 14, border: `1px solid ${C.grisMedio}`, overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
                 <thead>
                   <tr style={{ background: C.gris }}>

@@ -35,3 +35,41 @@ input, select, textarea, button { font-family: inherit; }
     max-width: none !important;
   }
 }
+
+/* VistaAdmin ─────────────────────────────────────────────────────────── */
+.admin-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.admin-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 640px) {
+  .admin-header-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .admin-header-row > div,
+  .admin-header-row > button {
+    width: 100%;
+  }
+
+  .admin-header-row > div {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+
+  .admin-form-grid {
+    grid-template-columns: 1fr;
+  }
+}

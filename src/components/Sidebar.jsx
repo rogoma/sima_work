@@ -16,7 +16,7 @@ export default function Sidebar({ usuario, vista, setVista, pendientes, localida
     () => vista === "admin" || vista === "roles"
   );
   const [registrosExpanded, setRegistrosExpanded] = useState(
-    () => vista === "registros" || vista === "nuevo" || vista === "validacion"
+    () => vista === "registros" || vista === "nuevo" || vista === "validacion" || vista === "profesional" || vista === "listaprofesionales"
   );
   const [docsExpanded, setDocsExpanded] = useState(false);
 
@@ -188,8 +188,10 @@ export default function Sidebar({ usuario, vista, setVista, pendientes, localida
   ];
 
   const registrosSubitems = [
-    { id: "registros", icon: "📋", label: "Lista de Registros" },
-    { id: "nuevo", icon: "➕", label: "Nuevo Registro" },
+    { id: "registros",           icon: "📋", label: "Lista de Registros" },
+    { id: "nuevo",               icon: "➕", label: "Nuevo Registro" },
+    { id: "listaprofesionales",  icon: "📋", label: "Lista Profesionales" },
+    { id: "profesional",         icon: "👷", label: "Nuevo Profesional" },
     ...(esCoordinador ? [{ id: "validacion", icon: "✅", label: "Validación", badge: pendientes }] : []),
   ];
 
@@ -299,7 +301,7 @@ export default function Sidebar({ usuario, vista, setVista, pendientes, localida
 
           {/* Sección Registros */}
           {(() => {
-            const isRegistrosActive = vista === "registros" || vista === "nuevo" || vista === "validacion";
+            const isRegistrosActive = vista === "registros" || vista === "nuevo" || vista === "validacion" || vista === "profesional" || vista === "listaprofesionales";
             return (
               <>
                 <button

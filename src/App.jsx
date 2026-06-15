@@ -18,6 +18,8 @@ import VistaReportes from "./views/VistaReportes";
 import VistaAdmin from "./views/VistaAdmin";
 import VistaRoles from "./views/VistaRoles";
 import VistaLineaAvance from "./views/VistaLineaAvance";
+import FormNuevoProfesional from "./views/FormNuevoProfesional";
+import VistaProfesionales from "./views/VistaProfesionales";
 
 export default function App() {
   const [usuario, setUsuario] = useState(() => getUsuarioGuardado());
@@ -179,6 +181,10 @@ export default function App() {
         return [1, 5].includes(usuario.rol_id) ? <VistaReportes registros={registros} localidades={localidades} modalidades={modalidades} /> : null;
       case "admin":
         return [1, 5].includes(usuario.rol_id) ? <VistaAdmin localidades={localidades} modalidades={modalidades} /> : null;
+      case "listaprofesionales":
+        return <VistaProfesionales usuario={usuario} localidades={localidades} />;
+      case "profesional":
+        return <FormNuevoProfesional usuario={usuario} localidades={localidades} />;
       case "roles":
         return [1, 5].includes(usuario.rol_id) ? <VistaRoles /> : null;
       default:

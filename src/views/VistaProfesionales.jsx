@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { C } from "../styles/colors";
-import { fetchProfesionales, fetchProfesiones, editarProfesional } from "../services/api";
+import { fetchProfesionales, fetchProfesiones, crearProfesional, editarProfesional } from "../services/api";
 import { Loading } from "../components/DataDisplay";
 import { Campo, Input, Select } from "../components/FormFields";
 
@@ -19,6 +19,13 @@ export default function VistaProfesionales({ usuario, localidades = [] }) {
   const [loading, setLoading]             = useState(true);
   const [error, setError]                 = useState("");
   const [busqueda, setBusqueda]           = useState("");
+
+  // Nuevo profesional
+  const [showNew, setShowNew]     = useState(false);
+  const [nuevoPro, setNuevoPro]   = useState({ localidad_id: "", profesion_id: "", ci: "", nombre: "", celular: "", direccion: "" });
+  const [errNew, setErrNew]       = useState({});
+  const [creating, setCreating]   = useState(false);
+  const setNP = (k, v) => setNuevoPro((n) => ({ ...n, [k]: v }));
 
   // Edición
   const [editando, setEditando]   = useState(null);   // { id, localidad_id, profesion_id, ci, nombre, celular, direccion, estado_id }
@@ -40,6 +47,103 @@ export default function VistaProfesionales({ usuario, localidades = [] }) {
     fetchProfesiones().then(setProfesiones).catch(() => {});
   }, []);
 
+  const validarNuevo = () => {
+    const e = {};
+    if (!nuevoPro.localidad_id)    e.localidad_id = "Requerido";
+    if (!nuevoPro.profesion_id)    e.profesion_id = "Requerido";
+    if (!nuevoPro.ci.trim())       e.ci = "Requerido";
+    if (!nuevoPro.nombre.trim())   e.nombre = "Requerido";
+    if (!nuevoPro.celular.trim())  e.celular = "Requerido";
+    setErrNew(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const crear = async () => {
+    if (!validarNuevo()) return;
+    setCreating(true);
+    try {
+      const ciRaw = nuevoPro.ci.replace(/\./g, "").trim();
+      const created = await crearProfesional({
+        localidad_id: nuevoPro.localidad_id,
+        profesion_id: nuevoPro.profesion_id,
+        ci:           ciRaw,
+        nombre:       nuevoPro.nombre,
+        celular:      nuevoPro.celular,
+        direccion:    nuevoPro.direccion,
+        estado_id:    1,
+      });
+      setProfesionales((prev) => [...prev, {
+        ...created,
+        localidad_nombre: localidades.find((l) => Number(l.id) === Number(created.localidad_id))?.nombre || "",
+        profesion_nombre: profesiones.find((pr) => Number(pr.id) === Number(created.profesion_id))?.nombre || "",
+      }]);
+      setShowNew(false);
+      setNuevoPro({ localidad_id: "", profesion_id: "", ci: "", nombre: "", celular: "", direccion: "" });
+      setErrNew({});
+    } catch (e) {
+      if (e.status === 409) {
+        setErrNew((err) => ({ ...err, ci: e.error }));
+      } else {
+        alert(e.error || "Error al crear el profesional.");
+      }
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const generarPDFProfesionales = async () => {
+    const { default: jsPDF } = await import("jspdf");
+    const { default: autoTable } = await import("jspdf-autotable");
+    const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+
+    try {
+      const res = await fetch("/Logo_Senasa.jpg");
+      const blob = await res.blob();
+      const logoBase64 = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(blob);
+      });
+      doc.addImage(logoBase64, "JPEG", 14, 10, 38, 19);
+    } catch {}
+
+    doc.setFontSize(13);
+    doc.setTextColor(18, 85, 161);
+    doc.setFont("helvetica", "bold");
+    doc.text("SIMA — Listado de Profesionales", 58, 17);
+
+    doc.setFontSize(8);
+    doc.setTextColor(100, 116, 139);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Generado: ${new Date().toLocaleString("es-PY")}   ·   Total: ${filtrados.length} profesionales`, 58, 24);
+
+    doc.setDrawColor(18, 85, 161);
+    doc.setLineWidth(0.4);
+    doc.line(14, 32, 283, 32);
+
+    const filas = filtrados.map((p) => [
+      p.localidad_nombre || "—",
+      p.profesion_nombre || "—",
+      fmtCI(p.ci),
+      p.nombre,
+      p.celular || "—",
+      p.direccion || "—",
+      ESTADOS.find((e) => e.id === (p.estado_id ?? 1))?.nombre || "Activo",
+    ]);
+
+    autoTable(doc, {
+      startY: 35,
+      head: [["Localidad", "Profesión", "CI", "Nombre", "Celular", "Dirección", "Estado"]],
+      body: filas,
+      headStyles: { fillColor: [18, 85, 161], fontSize: 9, fontStyle: "bold", textColor: 255 },
+      bodyStyles: { fontSize: 9, textColor: 30 },
+      alternateRowStyles: { fillColor: [248, 250, 252] },
+      styles: { cellPadding: 3, overflow: "linebreak" },
+    });
+
+    doc.save("listado_profesionales.pdf");
+  };
+
   const abrirEdicion = (p) => {
     setErrEdit({});
     setEditando({
@@ -56,10 +160,11 @@ export default function VistaProfesionales({ usuario, localidades = [] }) {
 
   const validarEdit = () => {
     const e = {};
-    if (!editando.localidad_id) e.localidad_id = "Requerido";
-    if (!editando.profesion_id) e.profesion_id = "Requerido";
-    if (!editando.ci.trim())    e.ci = "Requerido";
-    if (!editando.nombre.trim()) e.nombre = "Requerido";
+    if (!editando.localidad_id)    e.localidad_id = "Requerido";
+    if (!editando.profesion_id)    e.profesion_id = "Requerido";
+    if (!editando.ci.trim())       e.ci = "Requerido";
+    if (!editando.nombre.trim())   e.nombre = "Requerido";
+    if (!editando.celular.trim())  e.celular = "Requerido";
     setErrEdit(e);
     return Object.keys(e).length === 0;
   };
@@ -131,6 +236,104 @@ export default function VistaProfesionales({ usuario, localidades = [] }) {
         </p>
       </div>
 
+      {/* Barra de acciones */}
+      {!loading && !error && (
+        <div className="admin-header-row" style={{ marginBottom: 20 }}>
+          <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>Profesionales ({profesionales.length})</h3>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button
+              onClick={generarPDFProfesionales}
+              style={{ padding: "9px 18px", background: C.rojo, color: C.blanco, border: "none", borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: "pointer" }}
+            >
+              🖨️ Listado de Profesionales
+            </button>
+            {!editando && !showNew && (
+              <button
+                onClick={() => setShowNew(true)}
+                style={{ padding: "9px 18px", background: C.azul, color: C.blanco, border: "none", borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: "pointer" }}
+              >
+                + Nuevo Profesional
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Formulario nuevo profesional */}
+      {showNew && (
+        <div className="fade-in" style={{ background: C.azulSuave, borderRadius: 14, padding: 20, marginBottom: 20, border: `1px solid ${C.grisMedio}` }}>
+          <h4 style={{ margin: "0 0 16px", fontSize: 15, fontWeight: 700 }}>Nuevo profesional</h4>
+          <div className="admin-form-grid">
+            <Campo label="Localidad" required error={errNew.localidad_id}>
+              <Select value={nuevoPro.localidad_id} onChange={(e) => setNP("localidad_id", e.target.value)}>
+                <option value="">Seleccionar…</option>
+                {localidades.map((l) => <option key={l.id} value={l.id}>{l.nombre}</option>)}
+              </Select>
+            </Campo>
+
+            <Campo label="Profesión" required error={errNew.profesion_id}>
+              <Select value={nuevoPro.profesion_id} onChange={(e) => setNP("profesion_id", e.target.value)}>
+                <option value="">Seleccionar…</option>
+                {profesiones.map((pr) => <option key={pr.id} value={pr.id}>{pr.nombre}</option>)}
+              </Select>
+            </Campo>
+
+            <Campo label="Céd. de identidad" required error={errNew.ci}>
+              <Input
+                value={nuevoPro.ci}
+                onChange={(e) => {
+                  const digits = e.target.value.replace(/\D/g, "").slice(0, 10);
+                  setNP("ci", digits.replace(/\B(?=(\d{3})+(?!\d))/g, "."));
+                }}
+                placeholder="Ej: 3.456.789"
+              />
+            </Campo>
+
+            <Campo label="Nombre del Profesional" required error={errNew.nombre}>
+              <Input
+                value={nuevoPro.nombre}
+                onChange={(e) => setNP("nombre", e.target.value.slice(0, 200))}
+                placeholder="Nombre completo"
+              />
+            </Campo>
+
+            <Campo label="Celular" required error={errNew.celular}>
+              <Input
+                value={nuevoPro.celular}
+                onChange={(e) => setNP("celular", e.target.value.slice(0, 30))}
+                placeholder="Ej: 0981-123.456"
+              />
+            </Campo>
+
+            <Campo label="Dirección">
+              <Input
+                value={nuevoPro.direccion}
+                onChange={(e) => setNP("direccion", e.target.value.slice(0, 100))}
+                placeholder="Dirección"
+                maxLength={100}
+              />
+            </Campo>
+          </div>
+
+          <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 4 }}>
+            <button
+              onClick={() => { setShowNew(false); setErrNew({}); setNuevoPro({ localidad_id: "", profesion_id: "", ci: "", nombre: "", celular: "", direccion: "" }); }}
+              disabled={creating}
+              style={{ padding: "8px 18px", background: C.gris, border: `1px solid ${C.grisMedio}`, borderRadius: 10, cursor: "pointer", fontSize: 13, fontWeight: 600, color: C.grisTexto }}
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={crear}
+              disabled={creating}
+              style={{ padding: "8px 22px", background: creating ? C.grisMedio : C.azul, color: creating ? C.grisTexto : C.blanco, border: "none", borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: creating ? "not-allowed" : "pointer" }}
+            >
+              {creating ? "Creando…" : "Crear"}
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Panel de edición */}
       {editando && (
         <div className="fade-in" style={{ background: "#FFF9E6", borderRadius: 14, padding: 20, marginBottom: 20, border: "1px solid #F0D070" }}>
@@ -171,7 +374,7 @@ export default function VistaProfesionales({ usuario, localidades = [] }) {
               />
             </Campo>
 
-            <Campo label="Celular">
+            <Campo label="Celular" required error={errEdit.celular}>
               <Input
                 value={editando.celular}
                 onChange={(e) => setE("celular", e.target.value.slice(0, 30))}

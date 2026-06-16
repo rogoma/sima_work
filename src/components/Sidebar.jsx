@@ -16,7 +16,7 @@ export default function Sidebar({ usuario, vista, setVista, pendientes, localida
     () => vista === "admin" || vista === "roles"
   );
   const [registrosExpanded, setRegistrosExpanded] = useState(
-    () => vista === "registros" || vista === "nuevo" || vista === "validacion" || vista === "profesional" || vista === "listaprofesionales"
+    () => vista === "registros" || vista === "nuevo" || vista === "validacion" || vista === "profesional"
   );
   const [docsExpanded, setDocsExpanded] = useState(false);
 
@@ -188,10 +188,8 @@ export default function Sidebar({ usuario, vista, setVista, pendientes, localida
   ];
 
   const registrosSubitems = [
-    { id: "registros",           icon: "📋", label: "Lista de Registros" },
-    { id: "nuevo",               icon: "➕", label: "Nuevo Registro" },
-    { id: "listaprofesionales",  icon: "📋", label: "Lista Profesionales" },
-    { id: "profesional",         icon: "👷", label: "Nuevo Profesional" },
+    { id: "registros",  icon: "📋", label: "Lista de Registros" },
+    { id: "nuevo",      icon: "➕", label: "Nuevo Registro" },
     ...(esCoordinador ? [{ id: "validacion", icon: "✅", label: "Validación", badge: pendientes }] : []),
   ];
 
@@ -301,7 +299,7 @@ export default function Sidebar({ usuario, vista, setVista, pendientes, localida
 
           {/* Sección Registros */}
           {(() => {
-            const isRegistrosActive = vista === "registros" || vista === "nuevo" || vista === "validacion" || vista === "profesional" || vista === "listaprofesionales";
+            const isRegistrosActive = vista === "registros" || vista === "nuevo" || vista === "validacion" || vista === "profesional";
             return (
               <>
                 <button
@@ -344,6 +342,17 @@ export default function Sidebar({ usuario, vista, setVista, pendientes, localida
               </>
             );
           })()}
+
+          {/* Lista Profesionales */}
+          <button
+            onClick={() => setVista("listaprofesionales")}
+            style={navItemStyle(vista === "listaprofesionales")}
+            onMouseEnter={(e) => { if (vista !== "listaprofesionales") e.currentTarget.style.background = "rgba(255,255,255,0.07)"; }}
+            onMouseLeave={(e) => { if (vista !== "listaprofesionales") e.currentTarget.style.background = "none"; }}
+          >
+            <span style={{ fontSize: 16 }}>👷</span>
+            <span style={{ flex: 1 }}>Lista de Profesionales</span>
+          </button>
 
           {/* Reportes */}
           {esCoordinador && (

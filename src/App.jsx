@@ -65,18 +65,28 @@ export default function App() {
         fetchModalidades(),
       ]);
       setLocalidades(locs);
-      let allRegs = regs.data || regs;
+      const ESTADO_MAP = { 3: "rechazado", 4: "validado", 5: "pendiente" };
+      const normalizar = (r) => ({
+        ...r,
+        estado: r.estado?.trim() || ESTADO_MAP[r.estado_id] || r.estado,
+      });
+      let allRegs = (regs.data || regs).map(normalizar);
 
-      // Para coordinadores, el límite de 500 puede ocultar pendientes que queden
-      // fuera del orden alfabético. Se hace un segundo fetch de solo pendientes
-      // (sin límite efectivo) y se fusiona sin duplicar.
+      // Para coordinadores, se hace fetch completo de pendientes y validados
+      // para garantizar que ningún estado quede oculto más allá del límite.
       if (usuario && [1, 5].includes(usuario.rol_id)) {
         try {
-          const pendRes = await fetchRegistros({ estado: "pendiente", limit: 9999 });
-          const pendData = pendRes.data || pendRes;
+          const [pendRes, validRes] = await Promise.all([
+            fetchRegistros({ estado: "pendiente", limit: 9999 }),
+            fetchRegistros({ estado: "validado",  limit: 9999 }),
+          ]);
+          const extras = [
+            ...(pendRes.data || pendRes),
+            ...(validRes.data || validRes),
+          ].map(normalizar);
           const existingIds = new Set(allRegs.map((r) => r.id));
-          const extra = pendData.filter((r) => !existingIds.has(r.id));
-          if (extra.length > 0) allRegs = [...allRegs, ...extra];
+          const nuevos = extras.filter((r) => !existingIds.has(r.id));
+          if (nuevos.length > 0) allRegs = [...allRegs, ...nuevos];
         } catch {}
       }
 

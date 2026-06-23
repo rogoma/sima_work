@@ -72,7 +72,7 @@ export function fetchDashboard() {
 // ─── REGISTROS ───────────────────────────────────────────────────────────────
 
 export function fetchRegistros(params = {}) {
-  const query = new URLSearchParams({ limit: "500", ...params }).toString();
+  const query = new URLSearchParams({ limit: "9999", ...params }).toString();
   return apiFetch(`/registros?${query}`);
 }
 

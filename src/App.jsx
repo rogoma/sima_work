@@ -65,7 +65,22 @@ export default function App() {
         fetchModalidades(),
       ]);
       setLocalidades(locs);
-      setRegistros(regs.data || regs);
+      let allRegs = regs.data || regs;
+
+      // Para coordinadores, el límite de 500 puede ocultar pendientes que queden
+      // fuera del orden alfabético. Se hace un segundo fetch de solo pendientes
+      // (sin límite efectivo) y se fusiona sin duplicar.
+      if (usuario && [1, 5].includes(usuario.rol_id)) {
+        try {
+          const pendRes = await fetchRegistros({ estado: "pendiente", limit: 9999 });
+          const pendData = pendRes.data || pendRes;
+          const existingIds = new Set(allRegs.map((r) => r.id));
+          const extra = pendData.filter((r) => !existingIds.has(r.id));
+          if (extra.length > 0) allRegs = [...allRegs, ...extra];
+        } catch {}
+      }
+
+      setRegistros(allRegs);
       setModalidades(mods);
     } catch (e) {
       console.error("Error cargando datos:", e);

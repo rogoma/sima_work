@@ -127,6 +127,45 @@ function ModalGestionParcelas({
       prev.map((p) => (p.key === key ? { ...p, [campo]: valor } : p))
     );
 
+  // Chequeo de formato (mín. 2 dígitos) al salir de Lote o al elegir Fecha
+  const verificarFormatoMzLt = (idx, mz, lt) => {
+    setErrores((prev) => {
+      const next = { ...prev };
+      if (mz.trim() && mz.trim().length < 2) next[`mz_${idx}`] = "Mín. 2 dígitos";
+      else delete next[`mz_${idx}`];
+      if (lt.trim() && lt.trim().length < 2) next[`lt_${idx}`] = "Mín. 2 dígitos";
+      else delete next[`lt_${idx}`];
+      return next;
+    });
+  };
+
+  // Chequeo en tiempo real al salir de manzana o lote
+  const verificarDupParcela = (idx, mz, lt) => {
+    if (!mz.trim() || !lt.trim() || !localidad_id) return;
+
+    const inFormDup = parcelas.some((q, j) =>
+      j !== idx &&
+      q.manzana.trim().toLowerCase() === mz.trim().toLowerCase() &&
+      q.lote.trim().toLowerCase()    === lt.trim().toLowerCase()
+    );
+
+    const dbDup = registros.find((r) =>
+      String(r.localidad_id) === String(localidad_id) &&
+      r.manzana?.trim().toLowerCase() === mz.trim().toLowerCase() &&
+      r.lote?.trim().toLowerCase()    === lt.trim().toLowerCase() &&
+      r.estado !== "rechazado" &&
+      r.id !== registroEditarId
+    );
+
+    setErrores((prev) => {
+      const next = { ...prev };
+      if (inFormDup)     next[`dup_${idx}`] = "Parcela duplicada en el formulario";
+      else if (dbDup)    next[`dup_${idx}`] = `Ya existe en BD: ${dbDup.id} (${dbDup.estado})`;
+      else               delete next[`dup_${idx}`];
+      return next;
+    });
+  };
+
   const validar = () => {
     const e = {};
 
@@ -143,26 +182,26 @@ function ModalGestionParcelas({
       if (!p.modalidad_id)                  e[`mod_${i}`]  = "Seleccione estrategia";
       if (!p.evidencia_url)                 e[`ev_${i}`]   = "Adjunte al menos una evidencia";
 
-      // Duplicado en lista
+      // Duplicado entre parcelas del mismo formulario
       parcelas.forEach((q, j) => {
         if (i < j &&
           p.manzana.trim().toLowerCase() === q.manzana.trim().toLowerCase() &&
           p.lote.trim().toLowerCase()    === q.lote.trim().toLowerCase()) {
-          e[`dup_${i}`] = "Parcela duplicada";
-          e[`dup_${j}`] = "Parcela duplicada";
+          e[`dup_${i}`] = "Parcela duplicada en el formulario";
+          e[`dup_${j}`] = "Parcela duplicada en el formulario";
         }
       });
 
-      // Duplicado validado en BD
+      // Duplicado en BD: bloquea pendiente y validado (rechazado se puede re-registrar)
       if (localidad_id && p.manzana && p.lote) {
-        const dupVal = registros.find(
-          (r) =>
-            String(r.localidad_id) === String(localidad_id) &&
-            r.manzana?.trim().toLowerCase() === p.manzana.trim().toLowerCase() &&
-            r.lote?.trim().toLowerCase()    === p.lote.trim().toLowerCase() &&
-            r.estado === "validado"
+        const dupActivo = registros.find((r) =>
+          String(r.localidad_id) === String(localidad_id) &&
+          r.manzana?.trim().toLowerCase() === p.manzana.trim().toLowerCase() &&
+          r.lote?.trim().toLowerCase()    === p.lote.trim().toLowerCase() &&
+          r.estado !== "rechazado" &&
+          r.id !== registroEditarId
         );
-        if (dupVal) e[`dup_${i}`] = `Mz/Lt ya VALIDADO (${dupVal.id})`;
+        if (dupActivo) e[`dup_${i}`] = `Ya existe en BD: ${dupActivo.id} (${dupActivo.estado})`;
       }
     });
 
@@ -298,7 +337,13 @@ function ModalGestionParcelas({
                   </label>
                   <Input
                     value={p.manzana}
-                    onChange={(e) => actualizar(p.key, "manzana", e.target.value.slice(0, 6))}
+                    onChange={(e) => {
+                      actualizar(p.key, "manzana", e.target.value.slice(0, 6));
+                      setErrores((prev) => { const n = { ...prev }; delete n[`dup_${i}`]; delete n[`mz_${i}`]; return n; });
+                    }}
+                    onBlur={(e) => {
+                      if (e.target.value.trim() && p.lote.trim()) verificarDupParcela(i, e.target.value, p.lote);
+                    }}
                     placeholder="Ej: 12"
                     style={{ borderColor: (errores[`mz_${i}`] || errores[`dup_${i}`]) ? C.rojo : undefined }}
                   />
@@ -310,7 +355,15 @@ function ModalGestionParcelas({
                   </label>
                   <Input
                     value={p.lote}
-                    onChange={(e) => actualizar(p.key, "lote", e.target.value.slice(0, 6))}
+                    onChange={(e) => {
+                      actualizar(p.key, "lote", e.target.value.slice(0, 6));
+                      setErrores((prev) => { const n = { ...prev }; delete n[`dup_${i}`]; delete n[`lt_${i}`]; return n; });
+                    }}
+                    onBlur={(e) => {
+                      const ltVal = e.target.value;
+                      verificarFormatoMzLt(i, p.manzana, ltVal);
+                      if (p.manzana.trim() && ltVal.trim()) verificarDupParcela(i, p.manzana, ltVal);
+                    }}
                     placeholder="Ej: 05"
                     style={{ borderColor: (errores[`lt_${i}`] || errores[`dup_${i}`]) ? C.rojo : undefined }}
                   />
@@ -324,7 +377,10 @@ function ModalGestionParcelas({
                     type="date"
                     value={p.fecha_ejec}
                     max={new Date().toISOString().split("T")[0]}
-                    onChange={(e) => actualizar(p.key, "fecha_ejec", e.target.value)}
+                    onChange={(e) => {
+                      actualizar(p.key, "fecha_ejec", e.target.value);
+                      verificarFormatoMzLt(i, p.manzana, p.lote);
+                    }}
                     style={{ borderColor: errores[`fe_${i}`] ? C.rojo : undefined }}
                   />
                   {errores[`fe_${i}`] && <div style={{ fontSize: 11, color: C.rojo, marginTop: 3 }}>{errores[`fe_${i}`]}</div>}
@@ -492,7 +548,9 @@ export default function FormNuevoRegistro({ usuario, registros, onGuardar, onCan
     const e = {};
     if (!form.localidad_id) e.localidad_id = "Seleccione la localidad.";
     if (!form.titular.trim()) e.titular = "Ingrese el nombre.";
-    if (!form.ci.trim()) e.ci = "Ingrese la cédula.";
+    const ciRaw = form.ci.replace(/\./g, "").trim();
+    if (!ciRaw) e.ci = "Ingrese la cédula.";
+    else if (Number(ciRaw) === 0) e.ci = "La cédula no puede ser 0.";
     setErroresForm(e);
     return Object.keys(e).length === 0;
   };
@@ -502,7 +560,7 @@ export default function FormNuevoRegistro({ usuario, registros, onGuardar, onCan
   const consultarCI = async () => {
     if (esEdicion) return;
     const ciRaw = form.ci.replace(/\./g, "").trim();
-    if (ciRaw.length < 5 || ciRaw === ciConsultada) return;
+    if (ciRaw.length < 5 || Number(ciRaw) === 0 || ciRaw === ciConsultada) return;
     setBuscandoCI(true);
     try {
       const res = await verificarCI(ciRaw);
@@ -580,6 +638,11 @@ export default function FormNuevoRegistro({ usuario, registros, onGuardar, onCan
                     const digits = e.target.value.replace(/\D/g, "").slice(0, 10);
                     const formatted = digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
                     setF("ci", formatted);
+                    if (digits && Number(digits) === 0) {
+                      setErroresForm((prev) => ({ ...prev, ci: "La cédula no puede ser 0." }));
+                    } else {
+                      setErroresForm((prev) => { const n = { ...prev }; delete n.ci; return n; });
+                    }
                     if (!esEdicion) {
                       setParcelasConfirmadas([]);
                       setParcelasExistentes([]);

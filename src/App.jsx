@@ -201,7 +201,7 @@ export default function App() {
       case "nuevo":
         return <FormNuevoRegistro usuario={usuario} registros={registros} onGuardar={handleGuardarRegistro} onCancel={() => { setRegEditar(null); setVista("registros"); }} registroEditar={regEditar} localidades={localidades} modalidades={modalidades} />;
       case "validacion":
-        return [1, 5].includes(usuario.rol_id) ? <VistaValidacion registros={registros} onValidar={handleValidar} onRechazar={handleRechazar} localidades={localidades} modalidades={modalidades} /> : null;
+        return [1, 5].includes(usuario.rol_id) ? <VistaValidacion registros={registros} onValidar={handleValidar} onRechazar={handleRechazar} localidades={localidades} modalidades={modalidades} setVista={handleSetVista} /> : null;
       case "reportes":
         return [1, 5].includes(usuario.rol_id) ? <VistaReportes registros={registros} localidades={localidades} modalidades={modalidades} /> : null;
       case "admin":

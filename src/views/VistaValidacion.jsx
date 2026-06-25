@@ -6,7 +6,7 @@ import { Campo, Textarea } from "../components/FormFields";
 import TablaRegistros, { ModalDetalleRegistro } from "../components/TablaRegistros";
 import { fmt } from "../services/helpers";
 
-export default function VistaValidacion({ registros, onValidar, onRechazar, localidades }) {
+export default function VistaValidacion({ registros, onValidar, onRechazar, localidades, setVista }) {
   const pendientes = registros.filter((r) => r.estado === "pendiente");
   const [modalReg, setModalReg] = useState(null);
   const [accion, setAccion] = useState(null);
@@ -28,9 +28,19 @@ export default function VistaValidacion({ registros, onValidar, onRechazar, loca
 
   return (
     <div>
-      <div style={{ marginBottom: 20 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 800, color: C.texto, margin: 0, letterSpacing: "-0.03em" }}>✅ Panel de Validación</h1>
-        <p style={{ color: C.grisTexto, marginTop: 4, fontSize: 13 }}>Exclusivo para el Coordinador · DASOC</p>
+      <div style={{ marginBottom: 20, display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+        <div>
+          <h1 style={{ fontSize: 24, fontWeight: 800, color: C.texto, margin: 0, letterSpacing: "-0.03em" }}>✅ Panel de Validación</h1>
+          <p style={{ color: C.grisTexto, marginTop: 4, fontSize: 13 }}>Exclusivo para el Coordinador · DASOC</p>
+        </div>
+        {setVista && (
+          <button
+            onClick={() => setVista("dashboard")}
+            style={{ padding: "10px 20px", background: `linear-gradient(135deg,${C.rojo},#991B1B)`, color: C.blanco, border: "none", borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap", boxShadow: "0 3px 10px rgba(220,38,38,0.25)" }}
+          >
+            🏠 Volver al Dashboard
+          </button>
+        )}
       </div>
 
       {pendientes.length > 0 && (

@@ -3,7 +3,7 @@ import { C } from "../styles/colors";
 import { fetchRolesAdmin, crearRol, editarRol, eliminarRol } from "../services/api";
 import { Loading } from "../components/DataDisplay";
 
-export default function VistaRoles() {
+export default function VistaRoles({ setVista }) {
   const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -94,14 +94,21 @@ export default function VistaRoles() {
             Gestión de roles del sistema
           </p>
         </div>
-        {!showNew && (
-          <button
-            onClick={() => { setShowNew(true); setNuevoNombre(""); setErrorNew(""); }}
-            style={{ display: "flex", alignItems: "center", gap: 6, padding: "9px 18px", background: `linear-gradient(135deg,${C.azul},${C.azulMedio})`, color: C.blanco, border: "none", borderRadius: 10, cursor: "pointer", fontSize: 13, fontWeight: 700, boxShadow: "0 2px 8px rgba(18,85,161,0.2)" }}
-          >
-            + Nuevo Rol
-          </button>
-        )}
+        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+          {!showNew && (
+            <button
+              onClick={() => { setShowNew(true); setNuevoNombre(""); setErrorNew(""); }}
+              style={{ display: "flex", alignItems: "center", gap: 6, padding: "9px 18px", background: `linear-gradient(135deg,${C.azul},${C.azulMedio})`, color: C.blanco, border: "none", borderRadius: 10, cursor: "pointer", fontSize: 13, fontWeight: 700, boxShadow: "0 2px 8px rgba(18,85,161,0.2)" }}
+            >
+              + Nuevo Rol
+            </button>
+          )}
+          {setVista && (
+            <button onClick={() => setVista("dashboard")} style={{ padding: "9px 18px", background: C.rojo, border: "none", borderRadius: 10, cursor: "pointer", fontSize: 13, color: C.blanco, fontWeight: 700 }}>
+              Volver al Dashboard
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Formulario nuevo rol */}

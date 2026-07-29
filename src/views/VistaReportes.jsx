@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { C } from "../styles/colors";
 import { CatBadge } from "../components/Badges";
 import { useMobile } from "../hooks/useMobile";
+import { fetchTodasModalidades } from "../services/api";
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 const PIE_COLORS = [
@@ -34,9 +35,13 @@ const CustomTooltip = ({ active, payload }) => {
   return null;
 };
 
-export default function VistaReportes({ registros, localidades, modalidades }) {
+export default function VistaReportes({ registros, localidades, modalidades, setVista }) {
   const isMobile = useMobile();
-  const validados = registros.filter((r) => r.estado === "validado");
+  const [todasModalidades, setTodasModalidades] = useState(null);
+
+  useEffect(() => {
+    fetchTodasModalidades().then(setTodasModalidades).catch(() => {});
+  }, []);
 
   // Datos de torta: misma lógica que "Estado por Localidad" del Dashboard
   const pieData = localidades
@@ -48,7 +53,10 @@ export default function VistaReportes({ registros, localidades, modalidades }) {
     })
     .sort((a, b) => b.pct - a.pct);
 
-  const porMod = modalidades.map((m) => {
+  const validados = registros.filter((r) => r.estado === "validado");
+  // Se listan todas las modalidades sin importar su estado (activa/inactiva/suspendida),
+  // pero sólo se cuentan registros validados.
+  const porMod = (todasModalidades || modalidades).map((m) => {
     const n = validados.filter((r) => Number(r.modalidad_id) === Number(m.id)).length;
     return { ...m, n };
   }).filter((m) => m.n > 0).sort((a, b) => b.n - a.n);
@@ -58,9 +66,16 @@ export default function VistaReportes({ registros, localidades, modalidades }) {
 
   return (
     <div>
-      <div style={{ marginBottom: isMobile ? 16 : 24 }}>
-        <h1 style={{ fontSize: isMobile ? 20 : 24, fontWeight: 800, color: C.texto, margin: 0, letterSpacing: "-0.03em" }}>📈 Reportes y Estadísticas</h1>
-        <p style={{ color: C.grisTexto, marginTop: 4, fontSize: 13 }}>Basados en registros validados</p>        
+      <div style={{ marginBottom: isMobile ? 16 : 24, display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
+        <div>
+          <h1 style={{ fontSize: isMobile ? 20 : 24, fontWeight: 800, color: C.texto, margin: 0, letterSpacing: "-0.03em" }}>📈 Reportes y Estadísticas</h1>
+          <p style={{ color: C.grisTexto, marginTop: 4, fontSize: 13 }}>Basados en registros validados</p>
+        </div>
+        {setVista && (
+          <button onClick={() => setVista("dashboard")} style={{ padding: "8px 18px", background: C.rojo, border: "none", borderRadius: 10, cursor: "pointer", fontSize: 13, color: C.blanco, fontWeight: 700 }}>
+            Volver al Dashboard
+          </button>
+        )}
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: isMobile ? 14 : 20, marginBottom: 24 }}>

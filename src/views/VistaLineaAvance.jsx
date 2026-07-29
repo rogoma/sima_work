@@ -44,7 +44,7 @@ function Card({ icon, label, value, sub, color = C.azul }) {
   );
 }
 
-export default function VistaLineaAvance({ registros, localidades }) {
+export default function VistaLineaAvance({ registros, localidades, setVista }) {
   const hoy = new Date();
 
   // Solo conexiones validadas (estado_id = 4)
@@ -208,13 +208,20 @@ export default function VistaLineaAvance({ registros, localidades }) {
   return (
     <div>
       {/* Encabezado */}
-      <div style={{ marginBottom: 24 }}>
-        <h2 style={{ fontSize: 20, fontWeight: 900, color: C.texto, margin: 0, letterSpacing: "-0.02em" }}>
-          LÍNEA DE AVANCE
-        </h2>
-        <p style={{ fontSize: 13, color: C.grisTexto, margin: "6px 0 0" }}>
-          Visualice el avance histórico de conexiones al sistema de alcantarillado sanitario.
-        </p>
+      <div style={{ marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
+        <div>
+          <h2 style={{ fontSize: 20, fontWeight: 900, color: C.texto, margin: 0, letterSpacing: "-0.02em" }}>
+            LÍNEA DE AVANCE
+          </h2>
+          <p style={{ fontSize: 13, color: C.grisTexto, margin: "6px 0 0" }}>
+            Visualice el avance histórico de conexiones al sistema de alcantarillado sanitario.
+          </p>
+        </div>
+        {setVista && (
+          <button onClick={() => setVista("dashboard")} style={{ padding: "8px 18px", background: C.rojo, border: "none", borderRadius: 10, cursor: "pointer", fontSize: 13, color: C.blanco, fontWeight: 700 }}>
+            Volver al Dashboard
+          </button>
+        )}
       </div>
 
       {/* Tarjetas de estadísticas */}

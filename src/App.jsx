@@ -193,25 +193,25 @@ export default function App() {
       case "dashboard":
         return <VistaDashboard usuario={usuario} localidades={localidades} registros={registros} setVista={handleSetVista} setLocalidadSeleccionada={setLocalidadSel} />;
       case "linea":
-        return <VistaLineaAvance registros={registros} localidades={localidades} />;
+        return <VistaLineaAvance registros={registros} localidades={localidades} setVista={handleSetVista} />;
       case "localidad":
         return <VistaLocalidad localidadId={localidadSel} registros={registros} usuario={usuario} setVista={handleSetVista} localidades={localidades} modalidades={modalidades} onGuardarEdicion={() => { addToast("⏳ Reenviado", "Registro corregido.", "✅", C.azul); cargarDatos(); }} />;
       case "registros":
-        return <VistaRegistros registros={registros} usuario={usuario} onReabrir={handleReabrir} localidades={localidades} modalidades={modalidades} />;
+        return <VistaRegistros registros={registros} usuario={usuario} onReabrir={handleReabrir} localidades={localidades} modalidades={modalidades} setVista={handleSetVista} />;
       case "nuevo":
         return <FormNuevoRegistro usuario={usuario} registros={registros} onGuardar={handleGuardarRegistro} onCancel={() => { setRegEditar(null); setVista("registros"); }} registroEditar={regEditar} localidades={localidades} modalidades={modalidades} />;
       case "validacion":
         return [1, 5].includes(usuario.rol_id) ? <VistaValidacion registros={registros} onValidar={handleValidar} onRechazar={handleRechazar} localidades={localidades} modalidades={modalidades} setVista={handleSetVista} /> : null;
       case "reportes":
-        return [1, 5].includes(usuario.rol_id) ? <VistaReportes registros={registros} localidades={localidades} modalidades={modalidades} /> : null;
+        return [1, 5].includes(usuario.rol_id) ? <VistaReportes registros={registros} localidades={localidades} modalidades={modalidades} setVista={handleSetVista} /> : null;
       case "admin":
-        return [1, 5].includes(usuario.rol_id) ? <VistaAdmin localidades={localidades} modalidades={modalidades} /> : null;
+        return [1, 5].includes(usuario.rol_id) ? <VistaAdmin localidades={localidades} modalidades={modalidades} setVista={handleSetVista} /> : null;
       case "listaprofesionales":
-        return <VistaProfesionales usuario={usuario} localidades={localidades} />;
+        return <VistaProfesionales usuario={usuario} localidades={localidades} setVista={handleSetVista} />;
       case "profesional":
         return <FormNuevoProfesional usuario={usuario} localidades={localidades} />;
       case "roles":
-        return [1, 5].includes(usuario.rol_id) ? <VistaRoles /> : null;
+        return [1, 5].includes(usuario.rol_id) ? <VistaRoles setVista={handleSetVista} /> : null;
       default:
         return <VistaDashboard usuario={usuario} localidades={localidades} registros={registros} setVista={handleSetVista} setLocalidadSeleccionada={setLocalidadSel} />;
     }

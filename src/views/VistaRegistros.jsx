@@ -27,7 +27,7 @@ function descargarCSV(regs, localidades) {
   URL.revokeObjectURL(url);
 }
 
-export default function VistaRegistros({ registros, usuario, onReabrir, localidades, modalidades }) {
+export default function VistaRegistros({ registros, usuario, onReabrir, localidades, modalidades, setVista }) {
   const rolId = usuario.rol_id;
 
   // Grupos de comportamiento:
@@ -85,11 +85,18 @@ export default function VistaRegistros({ registros, usuario, onReabrir, localida
 
   return (
     <div>
-      <div style={{ marginBottom: 20 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 800, color: C.texto, margin: 0, letterSpacing: "-0.03em" }}>📋 Listado de Registros</h1>
-        <p style={{ color: C.rojo, marginTop: 4, fontSize: 13 }}>
-          {regs.length} registro{regs.length !== 1 ? "s" : ""} encontrado{regs.length !== 1 ? "s" : ""}
-        </p>
+      <div style={{ marginBottom: 20, display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
+        <div>
+          <h1 style={{ fontSize: 24, fontWeight: 800, color: C.texto, margin: 0, letterSpacing: "-0.03em" }}>📋 Listado de Registros</h1>
+          <p style={{ color: C.rojo, marginTop: 4, fontSize: 13 }}>
+            {regs.length} registro{regs.length !== 1 ? "s" : ""} encontrado{regs.length !== 1 ? "s" : ""}
+          </p>
+        </div>
+        {setVista && (
+          <button onClick={() => setVista("dashboard")} style={{ padding: "8px 18px", background: C.rojo, border: "none", borderRadius: 10, cursor: "pointer", fontSize: 13, color: C.blanco, fontWeight: 700 }}>
+            Volver al Dashboard
+          </button>
+        )}
       </div>
 
       <div style={{ background: C.blanco, borderRadius: 14, padding: "16px 20px", border: `1px solid ${C.grisMedio}`, marginBottom: 20, display: "flex", gap: 12, flexWrap: "wrap", alignItems: "flex-end" }}>

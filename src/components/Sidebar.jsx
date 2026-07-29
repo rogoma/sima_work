@@ -351,7 +351,7 @@ export default function Sidebar({ usuario, vista, setVista, pendientes, localida
             onMouseLeave={(e) => { if (vista !== "listaprofesionales") e.currentTarget.style.background = "none"; }}
           >
             <span style={{ fontSize: 16 }}>👷</span>
-            <span style={{ flex: 1 }}>Lista de Profesionales</span>
+            <span style={{ flex: 1 }}>Directorio de Profesionales</span>
           </button>
 
           {/* Reportes */}

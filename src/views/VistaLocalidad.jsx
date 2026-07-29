@@ -46,12 +46,14 @@ export default function VistaLocalidad({ localidadId, registros, usuario, setVis
 
   return (
     <div>
-      <div style={{ marginBottom: 24 }}>
-        <h1 style={{ margin: "0 0 4px", fontSize: 24, fontWeight: 800, color: C.texto, letterSpacing: "-0.03em" }}>📍 {locData.nombre}</h1>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+      <div style={{ marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
+        <div>
+          <h1 style={{ margin: "0 0 4px", fontSize: 24, fontWeight: 800, color: C.texto, letterSpacing: "-0.03em" }}>📍 {locData.nombre}</h1>
           <p style={{ margin: 0, fontSize: 13, color: C.grisTexto }}>Junta de Saneamiento de {locData.nombre}</p>
-          {/* <button onClick={() => setVista("dashboard")} style={{ padding: "5px 16px", background: C.rojo, border: "none", borderRadius: 10, cursor: "pointer", fontSize: 13, color: C.blanco, fontWeight: 600 }}>Volver</button> */}
         </div>
+        <button onClick={() => setVista("dashboard")} style={{ padding: "8px 18px", background: C.rojo, border: "none", borderRadius: 10, cursor: "pointer", fontSize: 13, color: C.blanco, fontWeight: 700 }}>
+          Volver al Dashboard
+        </button>
       </div>
 
       <div style={{ display: "flex", gap: 14, marginBottom: 24, flexWrap: "wrap" }}>

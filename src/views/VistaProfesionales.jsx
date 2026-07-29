@@ -13,7 +13,7 @@ const fmtCI = (ci) => ci ? String(ci).replace(/\B(?=(\d{3})+(?!\d))/g, ".") : "�
 
 const esCoordinador = (usuario) => [1, 5].includes(usuario?.rol_id);
 
-export default function VistaProfesionales({ usuario, localidades = [] }) {
+export default function VistaProfesionales({ usuario, localidades = [], setVista }) {
   const [profesionales, setProfesionales] = useState([]);
   const [profesiones, setProfesiones]     = useState([]);
   const [loading, setLoading]             = useState(true);
@@ -110,7 +110,7 @@ export default function VistaProfesionales({ usuario, localidades = [] }) {
     doc.setFontSize(13);
     doc.setTextColor(18, 85, 161);
     doc.setFont("helvetica", "bold");
-    doc.text("SIMA — Listado de Profesionales", 58, 17);
+    doc.text("SIMA — Directorio de Profesionales", 58, 17);
 
     doc.setFontSize(8);
     doc.setTextColor(100, 116, 139);
@@ -227,13 +227,20 @@ export default function VistaProfesionales({ usuario, localidades = [] }) {
   return (
     <div>
       {/* Encabezado */}
-      <div style={{ marginBottom: 24 }}>
-        <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: C.texto, letterSpacing: "-0.03em" }}>
-          👷 Profesionales
-        </h1>
-        <p style={{ color: C.grisTexto, marginTop: 4, fontSize: 13 }}>
-          Listado de profesionales registrados en el sistema
-        </p>
+      <div style={{ marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
+        <div>
+          <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: C.texto, letterSpacing: "-0.03em" }}>
+            👷 Directorio de Profesionales
+          </h1>
+          <p style={{ color: C.grisTexto, marginTop: 4, fontSize: 13 }}>
+            Directorio de profesionales registrados en el sistema
+          </p>
+        </div>
+        {setVista && (
+          <button onClick={() => setVista("dashboard")} style={{ padding: "8px 18px", background: C.rojo, border: "none", borderRadius: 10, cursor: "pointer", fontSize: 13, color: C.blanco, fontWeight: 700 }}>
+            Volver al Dashboard
+          </button>
+        )}
       </div>
 
       {/* Barra de acciones */}

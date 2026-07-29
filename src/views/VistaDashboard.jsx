@@ -65,7 +65,7 @@ export default function VistaDashboard({ usuario, localidades, registros, setVis
           <StatCard icon="🔗" label="Conectados a la Red" value={fmt(d.conectados_total)} color={C.azul} />
           <StatCard icon="⏳" label="Pendientes Validación" value={registros.filter(r => r.estado === "pendiente").length} color={C.amarillo} />
           <StatCard icon="📈" label="Avance del Programa" value={`${d.avance_pct}%`} color={C.verde} />
-          <StatCard icon="↔️" label="Brecha" value={fmt(d.brecha)} color={C.rojo} />
+          <StatCard icon="↔️" label="Brecha" value={fmt(d.meta - d.conectados_total)} color={C.rojo} />
         </div>
       )}
 
@@ -116,7 +116,7 @@ export default function VistaDashboard({ usuario, localidades, registros, setVis
                           <span style={{ fontSize: 12, fontWeight: 700, color: p >= 50 ? C.verde : p >= 25 ? C.amarillo : C.rojo, minWidth: 32 }}>{p}%</span>
                         </div>
                       </td>
-                      <td style={{ padding: "12px 14px", color: C.rojo, fontWeight: 600 }}>{fmt(loc.brecha || 0)}</td>
+                      <td style={{ padding: "12px 14px", color: C.rojo, fontWeight: 600 }}>{fmt(Number(loc.previstas) - conn)}</td>
                       <td style={{ padding: "12px 14px" }}>
                         <button onClick={() => { setLocalidadSeleccionada(loc.id); setVista("localidad"); }}
                           style={{ padding: "6px 14px", background: C.azul, color: C.blanco, border: "none", borderRadius: 8, fontSize: 12, cursor: "pointer", fontWeight: 600 }}>

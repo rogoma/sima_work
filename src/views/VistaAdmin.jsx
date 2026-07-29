@@ -16,7 +16,7 @@ const ESTADOS = [
   { id: 6, nombre: "Suspendido", bg: "#FEF3C7", color: "#92400E" },
 ];
 
-export default function VistaAdmin({ localidades, modalidades }) {
+export default function VistaAdmin({ localidades, modalidades, setVista }) {
   const [tab, setTab] = useState("usuarios");
   const [usuarios, setUsuarios] = useState([]);
   const [roles, setRoles] = useState([]);
@@ -186,9 +186,16 @@ export default function VistaAdmin({ localidades, modalidades }) {
 
   return (
     <div>
-      <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 800, color: C.texto, margin: 0, letterSpacing: "-0.03em" }}>⚙️ Administración</h1>
-        <p style={{ color: C.grisTexto, marginTop: 4, fontSize: 13 }}>Usuarios, metas y parametrización</p>
+      <div style={{ marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
+        <div>
+          <h1 style={{ fontSize: 24, fontWeight: 800, color: C.texto, margin: 0, letterSpacing: "-0.03em" }}>⚙️ Administración</h1>
+          <p style={{ color: C.grisTexto, marginTop: 4, fontSize: 13 }}>Usuarios, metas y parametrización</p>
+        </div>
+        {setVista && (
+          <button onClick={() => setVista("dashboard")} style={{ padding: "8px 18px", background: C.rojo, border: "none", borderRadius: 10, cursor: "pointer", fontSize: 13, color: C.blanco, fontWeight: 700 }}>
+            Volver al Dashboard
+          </button>
+        )}
       </div>
       <div style={{ display: "flex", gap: 0, marginBottom: 20, background: C.blanco, borderRadius: 12, border: `1px solid ${C.grisMedio}`, overflow: "hidden", width: "fit-content" }}>
         {tabs.map((t) => <button key={t.id} onClick={() => setTab(t.id)} style={{ padding: "10px 22px", background: tab === t.id ? C.azul : "none", color: tab === t.id ? C.blanco : C.grisTexto, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 700, borderRight: `1px solid ${C.grisMedio}`, transition: "all 0.2s" }}>{t.l}</button>)}

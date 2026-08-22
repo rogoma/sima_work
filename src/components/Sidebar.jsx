@@ -265,7 +265,7 @@ export default function Sidebar({ usuario, vista, setVista, pendientes, localida
             <img src="Logo_Senasa.jpg" alt="Logo Senasa" style={{ height: 50, objectFit: "contain" }} />
             <div>
               <div style={{ fontSize: 17, fontWeight: 900, color: C.blanco, letterSpacing: "-0.02em" }}>SIMA</div>
-              <div style={{ fontSize: 9, color: "rgba(255,255,255,0.55)", lineHeight: 1.3 }}>Monitor Social · Alcantarillado</div>
+              <div style={{ fontSize: 9, color: "rgba(255,255,255,0.55)", lineHeight: 1.3 }}>Sistema de Monitoreo de Alcantarillado</div>
             </div>
           </div>
         </div>

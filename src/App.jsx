@@ -182,7 +182,7 @@ export default function App() {
   if (loadingData) {
     return (
       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <Loading text="Cargando SIMSAS..." />
+        <Loading text="Cargando SIMA..." />
       </div>
     );
   }

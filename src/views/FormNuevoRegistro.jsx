@@ -23,9 +23,20 @@ const parcelaVacia = (modalidad_id = "") => ({
 
 // ─── Sección de evidencias para una parcela ───────────────────────────────────
 function EvidenciasParcela({ parcela, fileRefsMap, onActualizar }) {
+  const MAX_SIZE_MB = 5;
+  const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
+
   const handleUpload = async (e, idx) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    // Validación instantánea en el navegador, antes de subir nada
+    if (file.size > MAX_SIZE_BYTES) {
+      alert(`El archivo supera el tamaño máximo permitido (${MAX_SIZE_MB} MB).`);
+      e.target.value = ""; // limpia el input para permitir reintentar con el mismo archivo
+      return;
+    }
+
     const up = [...parcela.uploading]; up[idx] = true;
     onActualizar(parcela.key, "uploading", up);
     try {
